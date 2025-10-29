@@ -1,4 +1,4 @@
-import { PermissionsBitField, RESTPostAPIChatInputApplicationCommandsJSONBody, SlashCommandBuilder } from "discord.js";
+import { CommandInteraction, PermissionsBitField, RESTPostAPIChatInputApplicationCommandsJSONBody, SlashCommandBuilder } from "discord.js";
 import { Bot } from "../bot";
 
 export enum CommandPermissionLevel {
@@ -61,5 +61,5 @@ export abstract class Command {
         return builder.toJSON();
     }
 
-    abstract execute(bot: Bot, command: any): void;
+    abstract execute(bot: Bot, command: CommandInteraction): void;
 }

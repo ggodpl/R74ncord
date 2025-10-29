@@ -2,7 +2,7 @@ import { Bot } from "../../bot";
 import { Logger } from "../../logger";
 import { EventHandle } from "../handle";
 
-export default class BotLoginHandler extends EventHandle {
+export default class BotLoginHandler extends EventHandle<'clientReady'> {
     constructor () {
         super({
             name: "botLogin",

@@ -1,16 +1,16 @@
 import { ClientEvents } from "discord.js";
 import { Bot } from "../bot";
 
-export interface ListenerData {
+export interface ListenerData<E> {
     name: string;
-    event: keyof ClientEvents;
+    event: E;
     once?: boolean;
 }
 
-export abstract class EventHandle {
-    data: ListenerData;
+export abstract class EventHandle<E extends keyof ClientEvents> {
+    data: ListenerData<E>;
 
-    constructor (data: ListenerData) {
+    constructor (data: ListenerData<E>) {
         this.data = data;
     }
 
@@ -26,5 +26,5 @@ export abstract class EventHandle {
         return this.data.once;
     }
 
-    abstract execute(bot: Bot, eventData: any[]): void;
+    abstract execute(bot: Bot, ...args: ClientEvents[E]): void;
 }

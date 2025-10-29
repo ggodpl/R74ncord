@@ -20,4 +20,8 @@ export class Registry<T> {
     has(name: string) {
         return this.registry.has(name);
     }
+
+    toArray() {
+        return Array.from(this.registry.values());
+    }
 }

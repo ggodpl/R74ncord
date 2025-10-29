@@ -2,52 +2,63 @@ import { Client, ClientOptions, IntentsBitField } from "discord.js";
 import { Registry } from "./registry";
 import { EventHandle } from "./events/handle";
 import { Handler } from "./handlers/handler";
+import { Command } from "./commands/command";
+import { CommandHandler } from "./handlers/commandHandler";
+import { EventHandler } from "./handlers/eventHandler";
 
 export class Bot {
     client: Client;
-    registries: Registry<Registry<any>>;
-    handlers: Registry<Handler<any>>;
 
     clientId: string;
     clientSecret: string;
 
+    commands!: CommandHandler;
+    events!: EventHandler;
+
     constructor (options?: ClientOptions) {
         this.client = new Client({ intents: IntentsBitField.Flags.MessageContent, ...options });
-        this.registries = new Registry();
-        this.handlers = new Registry();
 
         this.clientId = process.env.CLIENT_ID ?? "";
         this.clientSecret = process.env.CLIENT_SECRET ?? "";
+
+        this.commands = undefined;
+        this.events = undefined;
     }
 
-    addRegistry(name: string, registry: Registry<any>) {
-        this.registries.register(name, registry);
-    }
-
-    removeRegistry(name: string) {
-        this.registries.unregister(name);
-    }
-
-    getRegistry<T>(name: string, upsert: boolean = false): Registry<T> | undefined {
-        if (upsert && !this.registries.has(name)) this.addRegistry(name, new Registry());
-        return this.registries.get(name);
-    }
-
-    addEventHandle(event: string, listener: EventHandle) {
-        const handler = (...args: any[]) => listener.execute(this, args);
+    addEventHandle(event: string, listener: EventHandle<any>) {
+        const handler = (...args: any[]) => listener.execute(this, ...args);
         if (listener.isOnce()) this.client.once(event, handler);
         else this.client.on(event, handler);
+
+        return this;
     }
 
-    addHandler<T>(handler: Handler<T>) {
-        this.handlers.register(handler.registryName, handler);
+    setCommandHandler(handler: CommandHandler) {
+        this.commands = handler;
+
+        return this;
+    }
+
+    setEventHandler(handler: EventHandler) {
+        this.events = handler;
+
+        return this;
+    }
+
+    async init() {
+        await this.commands.initalize();
+        await this.events.initalize();
+
+        await this.commands.deployCommands();
     }
 
     login() {
-        const token = process.env.DISCORD_TOKEN;
+        const token = process.env.DISCORD_TOKEN!;
         this.clientId = process.env.CLIENT_ID ?? "";
         this.clientSecret = process.env.CLIENT_SECRET ?? "";
 
         this.client.login(token);
+
+        return this;
     }
 }

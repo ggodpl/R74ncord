@@ -1,10 +1,10 @@
-import { Base } from "../base";
+import { Base, BaseRegistrar } from "../base";
 import { Bot } from "../bot";
 import { readdirSync, statSync } from "fs";
 import * as pth from "path";
 import { Logger } from "../logger";
 
-export abstract class Handler<T> extends Base {
+export abstract class Handler<T> extends BaseRegistrar<T> {
     registryName: string;
     directory: string;
 
@@ -12,13 +12,17 @@ export abstract class Handler<T> extends Base {
         super(bot);
         this.registryName = registryName;
         this.directory = directory;
-
-        this.loadDir(this.directory);
     }
 
-    abstract load(path: string): void;
+    async initalize() {
+        Logger.log(`Initalizing ${this.registryName} handler`, "HANDLER");
 
-    loadDir(path: string) {
+        await this.loadDir(this.directory);
+    }
+
+    abstract load(path: string): Promise<void>;
+
+    async loadDir(path: string) {
         const dirPath = pth.isAbsolute(path) ? path : pth.join(__dirname, "..", path);
 
         for (const file of readdirSync(dirPath)) {
@@ -26,15 +30,15 @@ export abstract class Handler<T> extends Base {
             const stats = statSync(filePath);
 
             if (stats.isDirectory()) {
-                this.loadDir(filePath);
+                await this.loadDir(filePath);
             } else {
-                this.load(filePath);
+                await this.load(filePath);
             }
         }
     }
 
     register(name: string, entity: T) {
-        this.bot.getRegistry<T>(name)?.register(name, entity);
+        this.registry.register(name, entity);
         Logger.log(`Registered ${name} in ${this.registryName}`, "HANDLER");
     }
 

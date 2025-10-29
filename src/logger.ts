@@ -1,31 +1,31 @@
-const MIN_LENGTH = 30;
+const MIN_LENGTH = 15;
 
 export class Logger {
     // TODO: add date here somewhere
-    static log(message: string, module?: string, prefix: string = "LOG", logDate: boolean = true) {
-        const logPrefix = module ? `[${prefix} | ${module}]` : `[${prefix}]`;
+    static log(message: string, module?: string, logDate: boolean = true) {
+        const logPrefix = module ? `[${module}]` : ``;
 
-        console.log(`${logPrefix}${" ".repeat(MIN_LENGTH - logPrefix.length)} ${message}`);
+        console.log(`${logPrefix}${" ".repeat(Math.max(1, MIN_LENGTH - logPrefix.length))} ${message}`);
     }
 
     // TODO: add date here somewhere
-    static error(message: string, module: string, prefix: string = "ERROR", logDate: boolean = true) {
-        const logPrefix = `[${prefix} | ${module}]`;
+    static error(message: string, module?: string, prefix: string = "ERROR", logDate: boolean = true) {
+        const logPrefix = module ? `[${module} | ${prefix}]` : `[${prefix}]`;
 
-        console.error(`${logPrefix}${" ".repeat(MIN_LENGTH - logPrefix.length)} ${message}`);
+        console.error(`${logPrefix}${" ".repeat(Math.max(1, MIN_LENGTH - logPrefix.length))} ${message}`);
     }
 
     // TODO: add date here somewhere
-    static warn(message: string, module: string, prefix: string = "WARN", logDate: boolean = true) {
-        const logPrefix = `[${prefix} | ${module}]`;
+    static warn(message: string, module?: string, prefix: string = "WARN", logDate: boolean = true) {
+        const logPrefix = module ? `[${module} | ${prefix}]` : `[${prefix}]`;
 
-        console.warn(`${logPrefix}${" ".repeat(MIN_LENGTH - logPrefix.length)} ${message}`);
+        console.warn(`${logPrefix}${" ".repeat(Math.max(1, MIN_LENGTH - logPrefix.length))} ${message}`);
     }
 
     // TODO: add date here somewhere
-    static debug(message: string, module: string, prefix: string = "DEBUG", logDate: boolean = true) {
-        const logPrefix = `[${prefix} | ${module}]`;
+    static debug(message: string, module?: string, prefix: string = "DEBUG", logDate: boolean = true) {
+        const logPrefix = module ? `[${module} | ${prefix}]` : `[${prefix}]`;
 
-        console.debug(`${logPrefix}${" ".repeat(MIN_LENGTH - logPrefix.length)} ${message}`);
+        console.debug(`${logPrefix}${" ".repeat(Math.max(1, MIN_LENGTH - logPrefix.length))} ${message}`);
     }
 }
