@@ -2,9 +2,11 @@ import { Client, ClientOptions, IntentsBitField } from "discord.js";
 import { Registry } from "./registry";
 import { EventHandle } from "./events/handle";
 import { Handler } from "./handlers/handler";
-import { Command } from "./commands/command";
+import { Command, CommandCategory } from "./commands/command";
 import { CommandHandler } from "./handlers/commandHandler";
 import { EventHandler } from "./handlers/eventHandler";
+import { MongoDB } from "./mongodb/mongodb";
+import { LevelsModule } from "./modules/levels";
 
 export class Bot {
     client: Client;
@@ -15,6 +17,9 @@ export class Bot {
     commands!: CommandHandler;
     events!: EventHandler;
 
+    db: MongoDB;
+    levels: LevelsModule;
+
     constructor (options?: ClientOptions) {
         this.client = new Client({ intents: IntentsBitField.Flags.MessageContent, ...options });
 
@@ -23,6 +28,9 @@ export class Bot {
 
         this.commands = undefined;
         this.events = undefined;
+
+        this.db = new MongoDB(this);
+        this.levels = new LevelsModule(this);
     }
 
     addEventHandle(event: string, listener: EventHandle<any>) {
@@ -45,11 +53,19 @@ export class Bot {
         return this;
     }
 
+    registerCategories(...categories: CommandCategory[]) {
+        this.commands.registerCategories(categories);
+
+        return this;
+    }
+
     async init() {
-        await this.commands.initalize();
-        await this.events.initalize();
+        await this.commands.initialize();
+        await this.events.initialize();
 
         await this.commands.deployCommands();
+
+        await this.db.initialize(process.env.MONGODB_URI);
     }
 
     login() {

@@ -22,6 +22,7 @@ export interface CommandData {
     name: string;
     description: string;
     permissionLevel?: CommandPermissionLevel;
+    category?: string;
 }
 
 export abstract class Command {
@@ -43,6 +44,14 @@ export abstract class Command {
         return this.data.permissionLevel;
     }
 
+    getCategory() {
+        return this.data.category;
+    }
+
+    setCategory(category: string) {
+        this.data.category = category;
+    }
+
     static validateCommand(cmd: Command) {
         const data = cmd.data;
 
@@ -62,4 +71,10 @@ export abstract class Command {
     }
 
     abstract execute(bot: Bot, command: CommandInteraction): void;
+}
+
+export interface CommandCategory {
+    id: string;
+    name: string;
+    description: string;
 }

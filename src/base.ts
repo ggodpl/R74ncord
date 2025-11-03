@@ -18,3 +18,7 @@ export class BaseRegistrar<T> {
         this.registry = new Registry();
     }
 }
+
+export interface Initializable<T> {
+    initialize: (...args: T[]) => Promise<boolean> | boolean
+}

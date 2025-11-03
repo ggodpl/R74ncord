@@ -1,10 +1,10 @@
-import { Base, BaseRegistrar } from "../base";
+import { Base, BaseRegistrar, Initializable } from "../base";
 import { Bot } from "../bot";
 import { readdirSync, statSync } from "fs";
-import * as pth from "path";
+import { isAbsolute, join, relative } from "path";
 import { Logger } from "../logger";
 
-export abstract class Handler<T> extends BaseRegistrar<T> {
+export abstract class Handler<T> extends BaseRegistrar<T> implements Initializable<never> {
     registryName: string;
     directory: string;
 
@@ -14,25 +14,27 @@ export abstract class Handler<T> extends BaseRegistrar<T> {
         this.directory = directory;
     }
 
-    async initalize() {
+    async initialize() {
         Logger.log(`Initalizing ${this.registryName} handler`, "HANDLER");
 
-        await this.loadDir(this.directory);
+        await this.loadDir(this.directory, true);
+
+        return true;
     }
 
-    abstract load(path: string): Promise<void>;
+    abstract load(path: string, dirPath: string, base: boolean): Promise<void>;
 
-    async loadDir(path: string) {
-        const dirPath = pth.isAbsolute(path) ? path : pth.join(__dirname, "..", path);
+    async loadDir(path: string, base: boolean) {
+        const dirPath = isAbsolute(path) ? path : join(__dirname, "..", path);
 
         for (const file of readdirSync(dirPath)) {
-            const filePath = pth.join(dirPath, file);
+            const filePath = join(dirPath, file);
             const stats = statSync(filePath);
 
             if (stats.isDirectory()) {
-                await this.loadDir(filePath);
+                await this.loadDir(filePath, false);
             } else {
-                await this.load(filePath);
+                await this.load(filePath, dirPath, base);
             }
         }
     }
@@ -43,6 +45,6 @@ export abstract class Handler<T> extends BaseRegistrar<T> {
     }
 
     static formatPath(path: string) {
-        return pth.relative(pth.join(process.cwd(), "out"), path).replace(/\\/g, "/");
+        return relative(join(process.cwd(), "out"), path).replace(/\\/g, "/");
     }
 }
