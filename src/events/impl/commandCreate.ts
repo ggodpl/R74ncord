@@ -1,4 +1,4 @@
-import { BaseInteraction, CommandInteraction, version } from "discord.js";
+import { BaseInteraction, ChatInputCommandInteraction } from "discord.js";
 import { Bot } from "../../bot";
 import { EventHandle } from "../handle";
 
@@ -14,6 +14,6 @@ export default class CommandCreateHandler extends EventHandle<'interactionCreate
     execute(bot: Bot, interaction: BaseInteraction): void {
         if (!interaction.isChatInputCommand()) return;
         
-        bot.commands.handleInteraction(interaction as CommandInteraction);
+        bot.commands.handleInteraction(interaction as ChatInputCommandInteraction);
     }
 }

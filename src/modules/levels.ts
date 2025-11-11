@@ -2,9 +2,51 @@ import { Base } from "../base";
 import LevelSchema from "../mongodb/models/LevelSchema";
 
 export class LevelsModule extends Base {
-    async getUserXP(userId: string, guildId: string) {
-        const data = await LevelSchema.findOneAndUpdate({ _id: userId, guildId }, {}, { upsert: true, new: true });
+    static sumXP(level: number) {
+        return Array(level + 1).fill(0).map((_, i) => this.getLevelXP(i)).reduce((acc, b) => acc + b, 0);
+    }
 
-        return data.xp;
+    static getRelativeXP(xp: number, level: number) {
+        return xp - this.sumXP(level - 1);
+    }
+
+    static getLevelXP(level: number) {
+        return 8 * (level ** 2) + 80 * level + 100;
+    }
+
+    async getUsers(guildId: string, page: number, amount: number) {
+        const users = await LevelSchema.aggregate([
+            { $match: { guildId } },
+            { $sort: { xp: -1 }},
+            { $skip: (page - 1) * amount },
+            { $limit: amount }
+        ]);
+
+        return users;
+    }
+
+    async getUser(userId: string, guildId: string) {
+        const result = await LevelSchema.aggregate([
+            { $match: { guildId }},
+            { $sort: { xp: -1 }},
+            { $group: {
+                _id: "$guildId",
+                users: { $push: { _id: "$_id", xp: "$xp", level: "$level" } },
+            }},
+            { $unwind: { path: "$users", includeArrayIndex: "rank" } },
+            { $match: { "users._id": userId } },
+            { $project: { 
+                rank: { $add: ["$rank", 1] },
+                _id: 1,
+                xp: "$users.xp",
+                level: "$users.level"
+            }}
+        ]);
+
+        return result[0];
+    }
+
+    async getPages(perPage: number) {
+        return Math.ceil(await LevelSchema.countDocuments() / perPage);
     }
 }

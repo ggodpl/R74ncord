@@ -1,5 +1,6 @@
-import { CommandInteraction, PermissionsBitField, RESTPostAPIChatInputApplicationCommandsJSONBody, SlashCommandBuilder } from "discord.js";
+import { ApplicationCommandOptionBase, ApplicationCommandOptionType, ChatInputCommandInteraction, PermissionsBitField, RESTPostAPIChatInputApplicationCommandsJSONBody, SlashCommandAttachmentOption, SlashCommandBooleanOption, SlashCommandBuilder, SlashCommandChannelOption, SlashCommandIntegerOption, SlashCommandMentionableOption, SlashCommandNumberOption, SlashCommandRoleOption, SlashCommandStringOption, SlashCommandUserOption } from "discord.js";
 import { Bot } from "../bot";
+import { Logger } from "../logger";
 
 export enum CommandPermissionLevel {
     USER,
@@ -23,6 +24,8 @@ export interface CommandData {
     description: string;
     permissionLevel?: CommandPermissionLevel;
     category?: string;
+    aliases?: string[];
+    options?: ApplicationCommandOptionBase[];
 }
 
 export abstract class Command {
@@ -66,11 +69,50 @@ export abstract class Command {
         
         const perms = this.getPermissionLevel();
         if (perms) builder.setDefaultMemberPermissions(PermissionsMap[perms]);
+        
+        if (this.data.options) {
+            // i hate this code
+            // macros in TS when 
+            for (const option of this.data.options) {    
+                switch (option.type) {
+                    case ApplicationCommandOptionType.Attachment:
+                        builder.addAttachmentOption(option as SlashCommandAttachmentOption);
+                        break;
+                    case ApplicationCommandOptionType.Boolean:
+                        builder.addBooleanOption(option as SlashCommandBooleanOption);
+                        break;
+                    case ApplicationCommandOptionType.Channel:
+                        builder.addChannelOption(option as SlashCommandChannelOption);
+                        break;
+                    case ApplicationCommandOptionType.Integer:
+                        builder.addIntegerOption(option as SlashCommandIntegerOption);
+                        break;
+                    case ApplicationCommandOptionType.Mentionable:
+                        builder.addMentionableOption(option as SlashCommandMentionableOption);
+                        break;
+                    case ApplicationCommandOptionType.Number:
+                        builder.addNumberOption(option as SlashCommandNumberOption);
+                        break;
+                    case ApplicationCommandOptionType.Role:
+                        builder.addRoleOption(option as SlashCommandRoleOption);
+                        break;
+                    case ApplicationCommandOptionType.String:
+                        builder.addStringOption(option as SlashCommandStringOption);
+                        break;
+                    case ApplicationCommandOptionType.User:
+                        builder.addUserOption(option as SlashCommandUserOption);
+                        break;
+                    default:
+                        Logger.error("Unsupported command option", "COMMAND");
+                        break;
+                }
+            }
+        }
 
         return builder.toJSON();
     }
 
-    abstract execute(bot: Bot, command: CommandInteraction): void;
+    abstract execute(bot: Bot, command: ChatInputCommandInteraction): void;
 }
 
 export interface CommandCategory {

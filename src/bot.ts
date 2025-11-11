@@ -7,6 +7,9 @@ import { CommandHandler } from "./handlers/commandHandler";
 import { EventHandler } from "./handlers/eventHandler";
 import { MongoDB } from "./mongodb/mongodb";
 import { LevelsModule } from "./modules/levels";
+import { RankCard } from "./modules/rankCard";
+import { SettingsModule } from "./modules/settings";
+import { XPModule } from "./modules/xp";
 
 export class Bot {
     client: Client;
@@ -19,9 +22,11 @@ export class Bot {
 
     db: MongoDB;
     levels: LevelsModule;
+    settings: SettingsModule;
+    xp: XPModule;
 
     constructor (options?: ClientOptions) {
-        this.client = new Client({ intents: IntentsBitField.Flags.MessageContent, ...options });
+        this.client = new Client({ intents: ['Guilds', 'GuildMessages', 'MessageContent'], ...options });
 
         this.clientId = process.env.CLIENT_ID ?? "";
         this.clientSecret = process.env.CLIENT_SECRET ?? "";
@@ -31,6 +36,8 @@ export class Bot {
 
         this.db = new MongoDB(this);
         this.levels = new LevelsModule(this);
+        this.settings = new SettingsModule(this);
+        this.xp = new XPModule(this);
     }
 
     addEventHandle(event: string, listener: EventHandle<any>) {
@@ -66,6 +73,8 @@ export class Bot {
         await this.commands.deployCommands();
 
         await this.db.initialize(process.env.MONGODB_URI);
+
+        RankCard.initialize();
     }
 
     login() {

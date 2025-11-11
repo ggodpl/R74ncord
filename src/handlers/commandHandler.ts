@@ -1,4 +1,4 @@
-import { CommandInteraction, REST, Routes } from "discord.js";
+import { ChatInputCommandInteraction, CommandInteraction, REST, Routes } from "discord.js";
 import { Bot } from "../bot";
 import { Command, CommandCategory, SlashCommandJSON } from "../commands/command";
 import { Logger } from "../logger";
@@ -37,7 +37,7 @@ export class CommandHandler extends Handler<Command> {
         this.slashCommands.register(name, command.toSlashCommand());
     }
 
-    handleInteraction(interaction: CommandInteraction) {
+    handleInteraction(interaction: ChatInputCommandInteraction) {
         const command = this.registry.get(interaction.commandName);
         if (!command) return Logger.warn(`Unregistered command has been called: ${interaction.commandName}`);
 
