@@ -10,6 +10,7 @@ import { LevelsModule } from "./modules/levels";
 import { RankCard } from "./modules/rankCard";
 import { SettingsModule } from "./modules/settings";
 import { XPModule } from "./modules/xp";
+import { LevelElementsModule } from "./modules/levelElements";
 
 export class Bot {
     client: Client;
@@ -24,6 +25,7 @@ export class Bot {
     levels: LevelsModule;
     settings: SettingsModule;
     xp: XPModule;
+    levelElements: LevelElementsModule;
 
     constructor (options?: ClientOptions) {
         this.client = new Client({ intents: ['Guilds', 'GuildMessages', 'MessageContent'], ...options });
@@ -38,6 +40,7 @@ export class Bot {
         this.levels = new LevelsModule(this);
         this.settings = new SettingsModule(this);
         this.xp = new XPModule(this);
+        this.levelElements = new LevelElementsModule(this);
     }
 
     addEventHandle(event: string, listener: EventHandle<any>) {

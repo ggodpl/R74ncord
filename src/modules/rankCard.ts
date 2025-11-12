@@ -1,5 +1,4 @@
-import { Canvas, Image, loadImage, registerFont } from "canvas";
-import { Initializable } from "../base";
+import { Canvas, loadImage, registerFont } from "canvas";
 import { Sandboxels } from "./sandboxels";
 
 export interface RankData {
@@ -39,25 +38,6 @@ export class RankCard {
         }
 
         sandboxels.simulate();
-
-        // while (filled < target) {
-        //     let free = Array(sandboxels.width).fill(0).map((_, i) => i).filter(p => sandboxels.isEmpty(p, top));
-
-        //     if (free.length > sandboxels.width / 4) {
-        //         const clone = [];
-        //         for (const i of Array(sandboxels.width / 4).fill(0).map(_ => Math.floor(Math.random() * free.length))) {
-        //             clone.push(free[i]);
-        //         }
-
-        //         free = clone;
-        //     }
-
-        //     filled += free.length;
-
-        //     free.forEach(p => sandboxels.createPixel(p, top));
-
-        //     sandboxels.simulate();
-        // }
     }
 
     static async generateAvatarContext(avatarURL: string) {
@@ -77,7 +57,7 @@ export class RankCard {
         return canvas.toBuffer();
     }
 
-    static async generateRankCard(avatarURL: string, username: string, rankData: RankData) {
+    static async generateRankCard(avatarURL: string, username: string, element: string, rankData: RankData) {
         const width = 500;
         const height = 200;
         const canvas = new Canvas(width, height);
@@ -87,7 +67,7 @@ export class RankCard {
         ctx.fillRect(0, 0, width, height);
 
         const pixelSize = 5;
-        const sandboxels = new Sandboxels(width / pixelSize, height / pixelSize, [230, 213, 119]);
+        const sandboxels = new Sandboxels(width / pixelSize, height / pixelSize, element ?? "sand");
         this.fill(sandboxels, rankData);
 
         const bg = await loadImage(sandboxels.render(pixelSize));

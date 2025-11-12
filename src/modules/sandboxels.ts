@@ -1,4 +1,6 @@
 import { Canvas } from "canvas";
+import { LevelElementsModule } from "./levelElements";
+import { randomElement } from "../utils/array";
 
 /// TINY SANDBOXELS INSTANCE
 export interface Pixel {
@@ -12,14 +14,14 @@ export class Sandboxels {
     width: number;
     height: number;
     pixels: Pixel[];
-    baseColor: [number, number, number];
+    element: string;
     private grid: Map<number, Pixel>;
 
-    constructor (width: number, height: number, baseColor: [number, number, number]) {
+    constructor (width: number, height: number, element: string) {
         this.width = width;
         this.height = height;
         this.pixels = [];
-        this.baseColor = baseColor;
+        this.element = element;
         this.grid = new Map();
     }
 
@@ -48,10 +50,12 @@ export class Sandboxels {
     }
 
     pickColor() {
+        const color = randomElement(LevelElementsModule.getElementColors(this.element));
+
         const colorOffset = Math.floor(Math.random() * (Math.random() > 0.5 ? -1 : 1) * Math.random() * 15);
-        const r = Math.max(0, Math.min(255, this.baseColor[0] + colorOffset));
-        const g = Math.max(0, Math.min(255, this.baseColor[1] + colorOffset));
-        const b = Math.max(0, Math.min(255, this.baseColor[2] + colorOffset));
+        const r = Math.max(0, Math.min(255, color[0] + colorOffset));
+        const g = Math.max(0, Math.min(255, color[1] + colorOffset));
+        const b = Math.max(0, Math.min(255, color[2] + colorOffset));
 
         return `rgb(${r}, ${g}, ${b})`;
     }

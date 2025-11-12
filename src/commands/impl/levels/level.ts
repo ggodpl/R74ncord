@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, CommandInteraction, SlashCommandUserOption } from "discord.js";
+import { ChatInputCommandInteraction, Colors, CommandInteraction, SlashCommandUserOption } from "discord.js";
 import { Bot } from "../../../bot";
 import { Logger } from "../../../logger";
 import { Command } from "../../command";
@@ -27,12 +27,14 @@ export default class TestCommand extends Command {
         
         const max = LevelsModule.getLevelXP(level);
 
-        const buffer = await RankCard.generateRankCard(user.displayAvatarURL({ extension: "png" }), user.username, {
+        const element = await bot.levelElements.getLevelElement(command.guildId, level);
+
+        const buffer = await RankCard.generateRankCard(user.displayAvatarURL({ extension: "png" }), user.username, element, {
             xp: LevelsModule.getRelativeXP(xp, level),
             totalXp: xp,
             level,
             max,
-            rank
+            rank,
         });
 
         command.reply({
