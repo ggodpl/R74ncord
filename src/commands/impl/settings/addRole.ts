@@ -23,7 +23,6 @@ export default class AddRole extends Command {
     }
 
     async execute(bot: Bot, command: ChatInputCommandInteraction) {
-        
         const level = command.options.getInteger("level");
         const role = command.options.getRole("role");
 

@@ -3,6 +3,7 @@ import { Base } from "../base";
 import { Bot } from "../bot";
 import LevelSchema from "../mongodb/models/LevelSchema";
 import { LevelsModule } from "./levels";
+import BlockedChannels from "../mongodb/models/BlockedChannels";
 
 const COOLDOWN = 1000;
 const COOLDOWN_SPAM_THRESHOLD = 700;
@@ -33,8 +34,18 @@ export class XPModule extends Base {
         return true;
     }
 
-    async gain(userId: string, guildId: string) {
+    async isBlocked(guildId: string, channelId: string) {
+        const res = await BlockedChannels.findOne({
+            guildId,
+            channelId
+        });
+
+        return !!res;
+    }
+
+    async gain(userId: string, guildId: string, channelId: string) {
         if (this.cooldown(userId)) return;
+        if (await this.isBlocked(guildId, channelId)) return;
         this.xpCooldowns.set(userId, Date.now() + COOLDOWN);
 
         const amount = Math.floor(Math.random() * 10) + 15;
