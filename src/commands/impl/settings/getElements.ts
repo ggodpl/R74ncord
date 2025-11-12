@@ -3,7 +3,7 @@ import { Command, CommandPermissionLevel } from "../../command";
 import { Bot } from "../../../bot";
 import { formatDate } from "../../../utils/date";
 
-export default class GetLevelElements extends Command {
+export default class LevelElements extends Command {
     constructor () {
         super({
             name: "level-elements",
@@ -28,9 +28,8 @@ export default class GetLevelElements extends Command {
                 iconURL: command.user.displayAvatarURL()
             });
 
-        command.reply({
-            embeds: [embed],
-            flags: MessageFlags.Ephemeral
+        command.editReply({
+            embeds: [embed]
         });
     }
 }

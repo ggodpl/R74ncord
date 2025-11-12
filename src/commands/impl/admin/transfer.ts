@@ -27,19 +27,20 @@ export default class Transfer extends Command {
     }
 
     async execute(bot: Bot, command: ChatInputCommandInteraction) {
+        
         const from = command.options.getUser("from", true);
         const to = command.options.getUser("to", true);
         const clear = command.options.getBoolean("clear-xp") ?? false;
         
-        const res = await LevelSchema.findByIdAndUpdate(from.id, clear ? { xp: 0 } : {});
+        const res = await LevelSchema.findOneAndUpdate({ userId: from.id, guildId: command.guildId }, clear ? { xp: 0 } : {});
 
-        await LevelSchema.findByIdAndUpdate(to.id, {
+        await LevelSchema.findOneAndUpdate({ userId: to.id, guildId: command.guildId }, {
             xp: res.xp
         }, {
             upsert: true
         });
 
-        command.reply({
+        command.editReply({
             content: `Successfully transfered ${res.xp} XP from ${from} to ${to}`,
             allowedMentions: {
                 users: []

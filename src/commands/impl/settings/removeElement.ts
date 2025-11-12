@@ -2,10 +2,10 @@ import { SlashCommandIntegerOption, ChatInputCommandInteraction, MessageFlags } 
 import { Command, CommandPermissionLevel } from "../../command";
 import { Bot } from "../../../bot";
 
-export default class RemoveLevelElement extends Command {
+export default class RemoveElement extends Command {
     constructor () {
         super({
-            name: "remove-level-element",
+            name: "remove-element",
             description: "Removes a level element",
             permissionLevel: CommandPermissionLevel.ADMIN,
             options: [
@@ -19,13 +19,13 @@ export default class RemoveLevelElement extends Command {
     }
 
     async execute(bot: Bot, command: ChatInputCommandInteraction) {
+        
         const level = command.options.getInteger("level");
 
         bot.levelElements.removeLevelElement(command.guildId, level);
 
-        command.reply({
-            content: `Successfully removed element for level ${level}`,
-            flags: MessageFlags.Ephemeral
+        command.editReply({
+            content: `Successfully removed element for level ${level}`
         });
     }
 }

@@ -23,14 +23,14 @@ export default class AddRole extends Command {
     }
 
     async execute(bot: Bot, command: ChatInputCommandInteraction) {
+        
         const level = command.options.getInteger("level");
         const role = command.options.getRole("role");
 
         bot.levelRoles.addLevelRole(command.guildId, level, role.id);
 
-        command.reply({
-            content: `${role} role will now be given after reaching level ${level}`,
-            flags: MessageFlags.Ephemeral
+        command.editReply({
+            content: `${role} role will now be given after reaching level ${level}`
         });
     }
 }

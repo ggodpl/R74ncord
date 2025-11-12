@@ -16,7 +16,8 @@ export default class GetLevelRoles extends Command {
     }
 
     async execute(bot: Bot, command: ChatInputCommandInteraction) {
-        const roles = await bot.levelRoles.getLevelRoles(command.guildId);        
+        
+        const roles = await bot.levelRoles.getLevelRoles(command.guildId);      
         
         const embed = new EmbedBuilder()
             .setTitle(`${command.guild.name} level elements`)
@@ -27,7 +28,7 @@ export default class GetLevelRoles extends Command {
                 iconURL: command.user.displayAvatarURL()
             });
 
-        command.reply({
+        command.editReply({
             embeds: [embed],
         });
     }

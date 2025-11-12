@@ -27,12 +27,12 @@ export default class Leaderboard extends Command {
 
     displayUsers(users: any[], userId: string, page: number, perPage: number) {
         return users.map((u, i) => (
-            `**#${((page - 1) * perPage) + i + 1}${u._id == userId ? "" : "**"} <@${u._id}> XP: \`${u.xp}\`${u._id == userId ? "**" : ""}`
+            `**#${((page - 1) * perPage) + i + 1}${u.userId == userId ? "" : "**"} <@${u.userId}> XP: \`${u.xp}\`${u.userId == userId ? "**" : ""}`
         )).join("\n");
     }
 
     async execute(bot: Bot, command: ChatInputCommandInteraction) {
-        await command.deferReply();
+        
         const page = command.options.getInteger("page") ?? 1;
         const perPage = command.options.getInteger("per-page") ?? 10;
 
@@ -48,7 +48,7 @@ export default class Leaderboard extends Command {
 
         let description = this.displayUsers(users, command.user.id, page, perPage);
 
-        if (!users.some(u => u._id == command.user.id)) {
+        if (!users.some(u => u.userId == command.user.id)) {
             const userXP = await bot.levels.getUser(command.user.id, command.guildId);
 
             description = `**#${userXP.rank} <@${command.user.id}> XP: \`${userXP.xp}\`**\n` + description;

@@ -3,10 +3,10 @@ import { Command, CommandPermissionLevel } from "../../command";
 import { Bot } from "../../../bot";
 import { LevelElementsModule } from "../../../modules/levelElements";
 
-export default class AddLevelColor extends Command {
+export default class AddElement extends Command {
     constructor () {
         super({
-            name: "add-level-element",
+            name: "add-element",
             description: "Adds a level element",
             permissionLevel: CommandPermissionLevel.ADMIN,
             options: [
@@ -28,18 +28,16 @@ export default class AddLevelColor extends Command {
         const element = command.options.getString("element");
 
         if (!LevelElementsModule.isElement(element)) {
-            command.reply({
-                content: `${element} is not a valid element`,
-                flags: MessageFlags.Ephemeral
+            command.editReply({
+                content: `${element} is not a valid element`
             });
             return;
         }
 
         bot.levelElements.addLevelElement(command.guildId, level, element);
 
-        command.reply({
-            content: `Successfully added an element for level ${level}`,
-            flags: MessageFlags.Ephemeral
+        command.editReply({
+            content: `Successfully added an element for level ${level}`
         });
     }
 }

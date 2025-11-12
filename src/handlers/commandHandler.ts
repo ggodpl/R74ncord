@@ -46,8 +46,9 @@ export class CommandHandler extends Handler<Command> {
         }
     }
 
-    handleInteraction(interaction: ChatInputCommandInteraction) {
+    async handleInteraction(interaction: ChatInputCommandInteraction) {
         try {
+            await interaction.deferReply();
             const command = this.registry.get(interaction.commandName) ?? this.registry.get(this.aliases.get(interaction.commandName));
             if (!command) {
                 interaction.reply("Unknown command");

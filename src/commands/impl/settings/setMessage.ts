@@ -18,10 +18,11 @@ export default class SetMessage extends Command {
     }
 
     async execute(bot: Bot, command: ChatInputCommandInteraction) {
+        
         const message = command.options.getString("message", true);
 
         await bot.settings.setGuildMessage(command.guildId, message);
 
-        command.reply(`Level-up announcement message successfully set to ${message}!`);
+        command.editReply(`Level-up announcement message successfully set to ${message}!`);
     }
 }

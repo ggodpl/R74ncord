@@ -18,10 +18,11 @@ export default class SetChannel extends Command {
     }
 
     async execute(bot: Bot, command: ChatInputCommandInteraction) {
+        
         const channel = command.options.getChannel("channel", true);
 
         await bot.settings.setGuildChannel(command.guildId, channel.id);
 
-        command.reply(`Level-up announcement channel successfully set to ${channel}!`);
+        command.editReply(`Level-up announcement channel successfully set to ${channel}`);
     }
 }

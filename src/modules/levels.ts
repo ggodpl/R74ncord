@@ -26,18 +26,24 @@ export class LevelsModule extends Base {
     }
 
     async getUser(userId: string, guildId: string) {
+        await LevelSchema.findOneAndUpdate(
+            { userId, guildId },
+            { $setOnInsert: { xp: 0, level: 0 } },
+            { upsert: true, new: true }
+        );
+
         const result = await LevelSchema.aggregate([
             { $match: { guildId }},
             { $sort: { xp: -1 }},
             { $group: {
                 _id: "$guildId",
-                users: { $push: { _id: "$_id", xp: "$xp", level: "$level" } },
+                users: { $push: { userId: "$userId", xp: "$xp", level: "$level" } },
             }},
             { $unwind: { path: "$users", includeArrayIndex: "rank" } },
-            { $match: { "users._id": userId } },
+            { $match: { "users.userId": userId } },
             { $project: { 
                 rank: { $add: ["$rank", 1] },
-                _id: 1,
+                userId: 1,
                 xp: "$users.xp",
                 level: "$users.level"
             }}

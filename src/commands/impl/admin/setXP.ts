@@ -23,16 +23,17 @@ export default class SetXP extends Command {
     }
 
     async execute(bot: Bot, command: ChatInputCommandInteraction) {
+        
         const user = command.options.getUser("user", true);
         const xp = command.options.getInteger("xp", true);
         
-        const res = await LevelSchema.findByIdAndUpdate(user.id, {
+        const res = await LevelSchema.findOneAndUpdate({ userId: user.id, guildId: command.guildId }, {
             xp
         }, {
             upsert: true
         });
 
-        command.reply({
+        command.editReply({
             content: `Successfully set user XP from ${res.xp} to ${xp}`,
             allowedMentions: {
                 users: []

@@ -39,7 +39,7 @@ export class XPModule extends Base {
 
         const amount = Math.floor(Math.random() * 10) + 15;
 
-        const user = await LevelSchema.findByIdAndUpdate(userId, {
+        const user = await LevelSchema.findOneAndUpdate({ userId, guildId }, {
             $inc: { xp: amount }
         }, {
             upsert: true,
@@ -50,7 +50,7 @@ export class XPModule extends Base {
     }
 
     async levelUp(userId: string, guildId: string) {
-        const level = await LevelSchema.findByIdAndUpdate(userId, {
+        const level = await LevelSchema.findOneAndUpdate({ userId, guildId }, {
             $inc: { level: 1 }
         }, {
             upsert: true,
@@ -65,6 +65,7 @@ export class XPModule extends Base {
         const user = await this.bot.levels.getUser(userId, guildId);
 
         const guildSettings = await this.bot.settings.getGuildSettings(guildId);
+        if (!guildSettings) return;
         const channelId = guildSettings.channel;
         if (!channelId) return;
 
