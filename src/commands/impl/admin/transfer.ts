@@ -8,7 +8,7 @@ export default class Transfer extends Command {
         super({
             name: "transfer",
             description: "Transfer XP between users",
-            permissionLevel: CommandPermissionLevel.ADMIN,
+            permissionLevel: CommandPermissionLevel.MOD,
             options: [
                 new SlashCommandUserOption()
                     .setName("from")

@@ -8,7 +8,7 @@ export default class SetXP extends Command {
         super({
             name: "set-xp",
             description: "Sets user's XP",
-            permissionLevel: CommandPermissionLevel.ADMIN,
+            permissionLevel: CommandPermissionLevel.MOD,
             options: [
                 new SlashCommandUserOption()
                     .setName("user")
