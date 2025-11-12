@@ -6,8 +6,8 @@ import { formatDate } from "../../../utils/date";
 export default class GetLevelElements extends Command {
     constructor () {
         super({
-            name: "get-level-elements",
-            description: "Gets guild level elements",
+            name: "level-elements",
+            description: "Displays guild level elements",
             permissionLevel: CommandPermissionLevel.ADMIN
         });
     }

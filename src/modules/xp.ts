@@ -50,13 +50,15 @@ export class XPModule extends Base {
     }
 
     async levelUp(userId: string, guildId: string) {
-        await LevelSchema.findByIdAndUpdate(userId, {
+        const level = await LevelSchema.findByIdAndUpdate(userId, {
             $inc: { level: 1 }
         }, {
-            upsert: true
+            upsert: true,
+            new: true
         });
 
         this.annouce(userId, guildId);
+        this.bot.levelRoles.levelUp(userId, guildId, level.level);
     }
 
     async annouce(userId: string, guildId: string) {

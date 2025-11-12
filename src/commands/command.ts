@@ -62,10 +62,10 @@ export abstract class Command {
             && data.description.length < 100;
     }
 
-    toSlashCommand() {
+    toSlashCommand(nameOverride?: string) {
         const builder = new SlashCommandBuilder()
-            .setName(this.getName())
-            .setDescription(this.getDescription());
+            .setName(nameOverride ?? this.getName())
+            .setDescription(nameOverride ? `Alias for ${this.getName()}` : this.getDescription());
         
         const perms = this.getPermissionLevel();
         if (perms) builder.setDefaultMemberPermissions(PermissionsMap[perms]);

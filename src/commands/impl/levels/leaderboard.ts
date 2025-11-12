@@ -32,6 +32,7 @@ export default class Leaderboard extends Command {
     }
 
     async execute(bot: Bot, command: ChatInputCommandInteraction) {
+        await command.deferReply();
         const page = command.options.getInteger("page") ?? 1;
         const perPage = command.options.getInteger("per-page") ?? 10;
 
@@ -62,7 +63,7 @@ export default class Leaderboard extends Command {
                 iconURL: command.user.displayAvatarURL()
             });
 
-        command.reply({
+        command.editReply({
             embeds: [embed]
         });
     }

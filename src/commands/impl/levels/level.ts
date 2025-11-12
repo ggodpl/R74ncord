@@ -21,6 +21,7 @@ export default class TestCommand extends Command {
     }
 
     async execute(bot: Bot, command: ChatInputCommandInteraction) {
+        await command.deferReply();
         const user = command.options.getUser("user") ?? command.user;
 
         const { xp, level, rank } = await bot.levels.getUser(user.id, command.guildId);
@@ -37,7 +38,7 @@ export default class TestCommand extends Command {
             rank,
         });
 
-        command.reply({
+        command.editReply({
             files: [
                 buffer
             ]

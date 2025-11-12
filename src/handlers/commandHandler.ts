@@ -8,12 +8,14 @@ import { basename } from "path";
 
 export class CommandHandler extends Handler<Command> {
     slashCommands: Registry<SlashCommandJSON>;
+    aliases: Registry<string>;
     categories: Registry<CommandCategory>;
 
     constructor (bot: Bot, directory: string) {
         super(bot, "commands", directory);
 
         this.slashCommands = new Registry();
+        this.aliases = new Registry();
         this.categories = new Registry();
     }
 
@@ -35,13 +37,27 @@ export class CommandHandler extends Handler<Command> {
 
         // TODO: add sending commands from this registry to discord
         this.slashCommands.register(name, command.toSlashCommand());
+
+        if (command.data.aliases) {
+            for (const alias of command.data.aliases) {
+                this.slashCommands.register(alias, command.toSlashCommand(alias));
+                this.aliases.register(alias, name);
+            }
+        }
     }
 
     handleInteraction(interaction: ChatInputCommandInteraction) {
-        const command = this.registry.get(interaction.commandName);
-        if (!command) return Logger.warn(`Unregistered command has been called: ${interaction.commandName}`);
+        try {
+            const command = this.registry.get(interaction.commandName) ?? this.registry.get(this.aliases.get(interaction.commandName));
+            if (!command) {
+                interaction.reply("Unknown command");
+                return Logger.warn(`Unregistered command has been called: ${interaction.commandName}`);
+            }
 
-        command.execute(this.bot, interaction);
+            command.execute(this.bot, interaction);
+        } catch (err) {
+            Logger.error(`Error executing command: ${err}`, "COMMAND");
+        }
     }
 
     registerCategories(categories: CommandCategory[]) {
