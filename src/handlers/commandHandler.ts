@@ -35,7 +35,6 @@ export class CommandHandler extends Handler<Command> {
     override register(name: string, command: Command) {
         super.register(name, command);
 
-        // TODO: add sending commands from this registry to discord
         this.slashCommands.register(name, command.toSlashCommand());
 
         if (command.data.aliases) {
