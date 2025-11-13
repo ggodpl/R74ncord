@@ -19,7 +19,6 @@ export default class RemoveElement extends Command {
     }
 
     async execute(bot: Bot, command: ChatInputCommandInteraction) {
-        
         const level = command.options.getInteger("level");
 
         bot.levelElements.removeLevelElement(command.guildId, level);

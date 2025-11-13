@@ -5,13 +5,13 @@ import elements from "../../static/data/elements.json";
 export class LevelElementsModule extends Base {
     async getLevelElements(guildId: string) {
         return await LevelElements.find({
-            _id: guildId
+            guildId
         });
     }
 
     async getLevelElement(guildId: string, level: number): Promise<string | undefined> {
         const result = await LevelElements.aggregate([
-            { $match: { _id: guildId, level: { $lte: level } } },
+            { $match: { guildId, level: { $lte: level } } },
             { $sort: { level: -1 } },
             { $limit: 1 }
         ]);
@@ -21,7 +21,7 @@ export class LevelElementsModule extends Base {
 
     async addLevelElement(guildId: string, level: number, element: string) {
         await LevelElements.findOneAndUpdate({
-            _id: guildId,
+            guildId,
             level
         }, {
             element
@@ -32,7 +32,7 @@ export class LevelElementsModule extends Base {
 
     async removeLevelElement(guildId: string, level: number) {
         await LevelElements.findOneAndDelete({
-            _id: guildId,
+            guildId,
             level
         });
     }

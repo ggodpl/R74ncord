@@ -18,7 +18,6 @@ export default class SetMessage extends Command {
     }
 
     async execute(bot: Bot, command: ChatInputCommandInteraction) {
-        
         const message = command.options.getString("message", true);
 
         await bot.settings.setGuildMessage(command.guildId, message);

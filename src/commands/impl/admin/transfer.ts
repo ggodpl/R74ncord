@@ -27,7 +27,6 @@ export default class Transfer extends Command {
     }
 
     async execute(bot: Bot, command: ChatInputCommandInteraction) {
-        
         const from = command.options.getUser("from", true);
         const to = command.options.getUser("to", true);
         const clear = command.options.getBoolean("clear-xp") ?? false;

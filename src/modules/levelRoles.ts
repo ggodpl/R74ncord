@@ -5,13 +5,13 @@ import LevelRoles from "../mongodb/models/LevelRoles";
 export class LevelRolesModule extends Base {
     async getLevelRoles(guildId: string) {
         return await LevelRoles.find({
-            _id: guildId
+            guildId
         });
     }
 
     async getLevelRole(guildId: string, level: number) {
         const result = await LevelRoles.aggregate([
-            { $match: { _id: guildId, level: { $lte: level } } },
+            { $match: { guildId, level: { $lte: level } } },
             { $sort: { level: -1 } },
             { $limit: 1 }
         ]);
@@ -21,7 +21,7 @@ export class LevelRolesModule extends Base {
 
     async addLevelRole(guildId: string, level: number, roleId: string) {
         await LevelRoles.findOneAndUpdate({
-            _id: guildId,
+            guildId,
             level
         }, {
             role: roleId
@@ -32,7 +32,7 @@ export class LevelRolesModule extends Base {
 
     async removeLevelRole(guildId: string, level: number) {
         await LevelRoles.findOneAndDelete({
-            _id: guildId,
+            guildId,
             level
         });
     }
