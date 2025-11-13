@@ -34,7 +34,7 @@ export default class LoadLevels extends Command {
         const mapped = keys.map(k => ({
             userId: k,
             guildId: command.guildId,
-            xp: LevelsModule.sumXP(data[k]),
+            xp: data[k] == 0 ? 0 : LevelsModule.sumXP(data[k] - 1),
             level: data[k]
         }));
 
