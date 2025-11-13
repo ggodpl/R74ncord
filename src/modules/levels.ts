@@ -10,6 +10,13 @@ export class LevelsModule extends Base {
         return xp - this.sumXP(level - 1);
     }
 
+    static getLevel(xp: number) {
+        let level = 0;
+        while (xp > this.sumXP(level)) level++;
+        
+        return level;
+    }
+
     static getLevelXP(level: number) {
         return 8 * (level ** 2) + 80 * level + 100;
     }

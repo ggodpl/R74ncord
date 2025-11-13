@@ -10,10 +10,13 @@ export class LevelRolesModule extends Base {
     }
 
     async getLevelRole(guildId: string, level: number) {
-        return await LevelRoles.findOne({
-            _id: guildId,
-            level
-        });
+        const result = await LevelRoles.aggregate([
+            { $match: { _id: guildId, level: { $lte: level } } },
+            { $sort: { level: -1 } },
+            { $limit: 1 }
+        ]);
+
+        return result[0];
     }
 
     async addLevelRole(guildId: string, level: number, roleId: string) {
@@ -41,6 +44,8 @@ export class LevelRolesModule extends Base {
         const guild = this.bot.client.guilds.cache.get(guildId);
         const member = await guild.members.fetch(userId);
 
+        if (member.roles.cache.has(role.role)) return;
+        
         try {
             await member.roles.add(role.role);
         } catch (err) {
