@@ -28,7 +28,7 @@ export default class SetLevel extends Command {
         const level = command.options.getInteger("level", true);
         
         const res = await LevelSchema.findOneAndUpdate({ userId: user.id, guildId: command.guildId }, {
-            xp: LevelsModule.getLevelXP(level),
+            xp: level == 0 ? 0 : LevelsModule.sumXP(level - 1),
             level
         }, {
             upsert: true
