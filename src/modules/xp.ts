@@ -5,8 +5,9 @@ import LevelSchema from "../mongodb/models/LevelSchema";
 import { LevelsModule } from "./levels";
 import BlockedChannels from "../mongodb/models/BlockedChannels";
 
-const COOLDOWN = 1000;
-const COOLDOWN_SPAM_THRESHOLD = 700;
+const COOLDOWN = 1000 * 60 * 2;
+const COOLDOWN_SPAM_THRESHOLD = 300;
+const COOLDOWN_EXTENSION = 3000;
 
 export class XPModule extends Base {
     xpCooldowns: Map<string, number>;
@@ -27,8 +28,8 @@ export class XPModule extends Base {
         }
 
         // if the user is gaining too often, extend cooldown
-        if (Date.now() - cooldown < (COOLDOWN - COOLDOWN_SPAM_THRESHOLD)) {
-            this.xpCooldowns.set(userId, this.xpCooldowns.get(userId) + COOLDOWN / 2);
+        if (Date.now() - cooldown < COOLDOWN_SPAM_THRESHOLD) {
+            this.xpCooldowns.set(userId, this.xpCooldowns.get(userId) + COOLDOWN_EXTENSION);
         }
 
         return true;
