@@ -12,6 +12,10 @@ const schema = new Schema({
     role: {
         type: String,
         required: true
+    },
+    keep: {
+        type: Boolean,
+        default: false
     }
 });
 

@@ -2,11 +2,11 @@ import { SlashCommandIntegerOption, ChatInputCommandInteraction, MessageFlags, S
 import { Command, CommandPermissionLevel } from "../../command";
 import { Bot } from "../../../bot";
 
-export default class AddRole extends Command {
+export default class EditRole extends Command {
     constructor () {
         super({
-            name: "add-role",
-            description: "Adds a level role",
+            name: "edit-role",
+            description: "Edits a level role",
             permissionLevel: CommandPermissionLevel.ADMIN,
             options: [
                 new SlashCommandIntegerOption()
@@ -17,7 +17,7 @@ export default class AddRole extends Command {
                 new SlashCommandRoleOption()
                     .setName("role")
                     .setDescription("Role")
-                    .setRequired(true),
+                    .setRequired(false),
                 new SlashCommandBooleanOption()
                     .setName("keep")
                     .setDescription("Keep")
@@ -31,10 +31,10 @@ export default class AddRole extends Command {
         const role = command.options.getRole("role");
         const keep = command.options.getBoolean("keep");
 
-        bot.levelRoles.addLevelRole(command.guildId, level, role.id, keep);
+        bot.levelRoles.editLevelRole(command.guildId, level, role?.id, keep);
 
         command.editReply({
-            content: `${role} role will now be given after reaching level ${level}`
+            content: `Edited role for level ${level}`
         });
     }
 }
