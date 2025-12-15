@@ -72,7 +72,7 @@ export class LevelRolesModule extends Base {
         try {
             const rolesToRemove = previousRoles
                 .map(r => r.role)
-                .filter(roleId => member.roles.cache.has(roleId));
+                .filter(roleId => member.roles.cache.has(roleId) && roleId != role.role);
             
             if (rolesToRemove.length > 0) {
                 await member.roles.remove(rolesToRemove);
