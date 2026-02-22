@@ -18,7 +18,7 @@ export class LevelsModule extends Base {
     }
 
     static getLevelXP(level: number) {
-        return .33 * (level ** 2) + 89 * level + 100;
+        return Math.floor(.33 * (level ** 2) + 89 * level + 100);
     }
 
     async getUsers(guildId: string, page: number, amount: number) {

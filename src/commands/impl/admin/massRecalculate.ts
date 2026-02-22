@@ -96,12 +96,12 @@ export default class MassRecalculate extends Command {
 
         return {
             xp: recalculatedXP,
-            level: recalculatedLevel
+            level: Math.max(0, recalculatedLevel)
         }
     }
 
     static sumXP(level: number) {
-        return Array(level).fill(0).map((_, i) => this.getLevelXP(i)).reduce((acc, b) => acc + b, 0);
+        return Array(level + 1).fill(0).map((_, i) => this.getLevelXP(i)).reduce((acc, b) => acc + b, 0);
     }
 
     static getRelativeXP(xp: number, level: number) {
@@ -116,7 +116,6 @@ export default class MassRecalculate extends Command {
     }
 
     static getLevelXP(level: number) {
-        // .33n^2+89n
-        return .33 * (level ** 2) + 89 * level + 100;
+        return Math.floor(.33 * (level ** 2) + 89 * level + 100);
     }
 }

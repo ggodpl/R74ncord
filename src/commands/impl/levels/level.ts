@@ -1,6 +1,5 @@
-import { ChatInputCommandInteraction, Colors, CommandInteraction, SlashCommandUserOption } from "discord.js";
+import { ChatInputCommandInteraction, SlashCommandUserOption } from "discord.js";
 import { Bot } from "../../../bot";
-import { Logger } from "../../../logger";
 import { Command } from "../../command";
 import { RankCard } from "../../../modules/rankCard";
 import { LevelsModule } from "../../../modules/levels";
