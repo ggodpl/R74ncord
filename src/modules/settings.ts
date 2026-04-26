@@ -3,7 +3,7 @@ import GuildSettings from "../mongodb/models/GuildSettings";
 
 export class SettingsModule extends Base {
     async getGuildSettings(guildId: string) {
-        return await GuildSettings.findById(guildId);
+        return await GuildSettings.findById(guildId).lean();
     }
 
     async setGuildChannel(guildId: string, channelId: string) {
@@ -21,4 +21,28 @@ export class SettingsModule extends Base {
             upsert: true
         });
     }
+
+    async setModLogChannel(guildId: string, channelId: string) {
+        return await GuildSettings.findByIdAndUpdate(guildId, {
+            modlog: channelId,
+        }, {
+            upsert: true,
+        });
+    }
+
+    async setTicketForum(guildId: string, channelId: string) {
+        return await GuildSettings.findByIdAndUpdate(guildId, {
+            ticketForum: channelId,
+        }, {
+            upsert: true,
+        });
+    }
+
+    async setTicketStarterMessage(guildId: string, starterMessage: string) {
+        return await GuildSettings.findByIdAndUpdate(guildId, {
+            ticketStarterMessage: starterMessage,
+        }, {
+            upsert: true,
+        });
+    } 
 }

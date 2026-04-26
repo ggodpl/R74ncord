@@ -1,10 +1,11 @@
-import { ChatInputCommandInteraction, CommandInteraction, REST, Routes } from "discord.js";
+import { ChatInputCommandInteraction, Colors, EmbedBuilder, MessageFlags, REST, Routes } from "discord.js";
 import { Bot } from "../bot";
 import { Command, CommandCategory, SlashCommandJSON } from "../commands/command";
 import { Logger } from "../logger";
 import { Registry } from "../registry";
 import { Handler } from "./handler";
 import { basename } from "path";
+import { getFooter } from "../utils/embed";
 
 export class CommandHandler extends Handler<Command> {
     slashCommands: Registry<SlashCommandJSON>;
@@ -47,16 +48,38 @@ export class CommandHandler extends Handler<Command> {
 
     async handleInteraction(interaction: ChatInputCommandInteraction) {
         try {
-            await interaction.deferReply();
             const command = this.registry.get(interaction.commandName) ?? this.registry.get(this.aliases.get(interaction.commandName));
             if (!command) {
-                interaction.reply("Unknown command");
+                const error = new EmbedBuilder()
+                    .setTitle('Unknown command')
+                    .setDescription('The command you used does not exist. If you see this error, your Discord client is probably desynchornized. Refresh your Discord client and try again later.')
+                    .setColor(Colors.Red)
+                    .setFooter(getFooter(interaction.user.displayAvatarURL()));
+
+                interaction.reply({
+                    embeds: [error],
+                    content: ''
+                });
+                
                 return Logger.warn(`Unregistered command has been called: ${interaction.commandName}`);
             }
 
+            await interaction.deferReply({
+                flags: command.data.isEphemeral ? [MessageFlags.Ephemeral] : []
+            });
             command.execute(this.bot, interaction);
         } catch (err) {
             Logger.error(`Error executing command: ${err}`, "COMMAND");
+            const error = new EmbedBuilder()
+                .setTitle('Error')
+                .setDescription('An error occured during execution of this cmomand. Please try again later or contact the moderation team.')
+                .setColor(Colors.Red)
+                .setFooter(getFooter(interaction.user.displayAvatarURL()));
+            
+            await interaction.editReply({
+                embeds: [error],
+                content: ''
+            });
         }
     }
 

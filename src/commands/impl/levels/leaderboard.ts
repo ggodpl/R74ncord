@@ -37,9 +37,8 @@ export default class Leaderboard extends Command {
 
         const pages = await bot.levels.getPages(perPage);
         if (page > pages) {
-            return command.reply({
-                content: "The page you entered doesn't exist!",
-                flags: [MessageFlags.Ephemeral]
+            return command.editReply({
+                content: "The page you entered doesn't exist!"
             });
         }
 

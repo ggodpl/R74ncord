@@ -16,7 +16,7 @@ export const PermissionsMap = {
     [CommandPermissionLevel.DEV]: "0",
     [CommandPermissionLevel.ADMIN]: PermissionsBitField.Flags.Administrator,
     [CommandPermissionLevel.MOD]: PermissionsBitField.Flags.BanMembers,
-    [CommandPermissionLevel.CHAT_MOD]: PermissionsBitField.Flags.KickMembers,
+    [CommandPermissionLevel.CHAT_MOD]: PermissionsBitField.Flags.ManageMessages,
 }
 
 export interface CommandData {
@@ -26,6 +26,7 @@ export interface CommandData {
     category?: string;
     aliases?: string[];
     options?: ApplicationCommandOptionBase[];
+    isEphemeral?: boolean;
 }
 
 export abstract class Command {

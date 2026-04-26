@@ -9,6 +9,12 @@ const schema = new Schema({
     message: {
         type: String,
         default: "%user% has reached level %level%!"
+    },
+    modlog: String,
+    ticketForum: String,
+    ticketStarterMessage: {
+        type: String,
+        default: '%user opened a new ticket'
     }
 });
 

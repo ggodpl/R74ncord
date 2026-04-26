@@ -1,8 +1,6 @@
-import { Client, ClientOptions, IntentsBitField } from "discord.js";
-import { Registry } from "./registry";
+import { Client, ClientOptions, Partials } from "discord.js";
 import { EventHandle } from "./events/handle";
-import { Handler } from "./handlers/handler";
-import { Command, CommandCategory } from "./commands/command";
+import { CommandCategory } from "./commands/command";
 import { CommandHandler } from "./handlers/commandHandler";
 import { EventHandler } from "./handlers/eventHandler";
 import { MongoDB } from "./mongodb/mongodb";
@@ -12,6 +10,9 @@ import { SettingsModule } from "./modules/settings";
 import { XPModule } from "./modules/xp";
 import { LevelElementsModule } from "./modules/levelElements";
 import { LevelRolesModule } from "./modules/levelRoles";
+import { ModerationModule } from "./modules/moderation";
+import { Scheduler } from "./modules/scheduler";
+import { TicketsModule } from "./modules/tickets";
 
 export class Bot {
     client: Client;
@@ -28,9 +29,12 @@ export class Bot {
     xp: XPModule;
     levelElements: LevelElementsModule;
     levelRoles: LevelRolesModule;
+    moderation: ModerationModule;
+    scheduler: Scheduler;
+    tickets: TicketsModule;
 
     constructor (options?: ClientOptions) {
-        this.client = new Client({ intents: ['Guilds', 'GuildMessages', 'MessageContent'], ...options });
+        this.client = new Client({ intents: ['Guilds', 'GuildMessages', 'MessageContent', 'DirectMessages', 'GuildBans', 'GuildModeration'], partials: [Partials.Channel], ...options });
 
         this.clientId = process.env.CLIENT_ID ?? "";
         this.clientSecret = process.env.CLIENT_SECRET ?? "";
@@ -44,6 +48,9 @@ export class Bot {
         this.xp = new XPModule(this);
         this.levelElements = new LevelElementsModule(this);
         this.levelRoles = new LevelRolesModule(this);
+        this.moderation = new ModerationModule(this);
+        this.scheduler = new Scheduler(this);
+        this.tickets = new TicketsModule(this);
     }
 
     addEventHandle(event: string, listener: EventHandle<any>) {
@@ -81,6 +88,7 @@ export class Bot {
         await this.db.initialize(process.env.MONGODB_URI);
 
         RankCard.initialize();
+        this.tickets.initialize();
     }
 
     login() {
