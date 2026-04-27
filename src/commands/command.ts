@@ -27,6 +27,7 @@ export interface CommandData {
     aliases?: string[];
     options?: ApplicationCommandOptionBase[];
     isEphemeral?: boolean;
+    dm?: boolean;
 }
 
 export abstract class Command {

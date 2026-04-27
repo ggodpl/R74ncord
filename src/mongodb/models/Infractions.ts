@@ -18,9 +18,7 @@ const schema = new Schema({
         type: String,
         default: 'No reason provided'
     },
-    caseId: {
-        type: Number,
-    },
+    caseId: Number,
     moderator: {
         type: String,
         required: true

@@ -14,8 +14,9 @@ const schema = new Schema({
     ticketForum: String,
     ticketStarterMessage: {
         type: String,
-        default: '%user opened a new ticket'
-    }
+        default: '%user (`%username`) opened a new ticket'
+    },
+    transcriptChannel: String,
 });
 
 export default model('GuildSetting', schema);

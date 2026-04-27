@@ -44,5 +44,13 @@ export class SettingsModule extends Base {
         }, {
             upsert: true,
         });
-    } 
+    }
+
+    async setTranscriptChannel(guildId: string, channelId: string) {
+        return await GuildSettings.findByIdAndUpdate(guildId, {
+            transcriptChannel: channelId,
+        }, {
+            upsert: true,
+        });
+    }
 }

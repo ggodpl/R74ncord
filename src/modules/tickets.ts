@@ -1,8 +1,12 @@
-import { ButtonBuilder, ButtonStyle, ChannelType, Colors, ContainerBuilder, EmbedBuilder, ForumChannel, Message, MessageFlags } from 'discord.js';
+import { AttachmentBuilder, ButtonBuilder, ButtonStyle, Colors, ContainerBuilder, EmbedBuilder, ForumChannel, ForumThreadChannel, Message, MessageFlags, TextChannel } from 'discord.js';
 import { Base, Initializable } from '../base';
 import Tickets from '../mongodb/models/Tickets';
 import ms from 'ms';
 import { getFooter } from '../utils/embed';
+import { createTranscript, ExportReturnType } from 'discord-html-transcripts';
+import { formatDate } from '../utils/date';
+import path from 'path';
+import { mkdirSync, writeFileSync } from 'fs';
 
 export interface QuickStart {
     caseId?: number;
@@ -13,6 +17,17 @@ const GUILD_ID = process.env['BASE_TICKET_GUILD']!;
 
 export class TicketsModule extends Base implements Initializable<never> {
     private ticketChannels: Set<string> = new Set();
+    private TRANSCRIPTS_DIR: string = path.join(process.cwd(), 'data', 'transcripts');
+    
+    public RESPONSES = {
+        ALREADY_OPEN: 'You already have an open ticket. Please close your existing ticket before opening a new one.',
+        NOT_READY: 'The ticketing system is not ready yet. Please contact the server moderators.',
+        NO_GUILD: 'The bot is not in the guild. Please contact the server moderators.',
+        NO_CHANNEL: 'The ticket forum channel is not set up correctly. Please contact the server moderators.',
+        INVALID_CASE: 'The provided case ID is invalid. Please provide a valid case ID or leave it blank.',
+        NO_TICKET: 'No active ticket found.',
+        OK: 'OK',
+    };
 
     async createTicket(userId: string, quickStart: QuickStart) {
         const activeTicket = await Tickets.findOne({
@@ -47,20 +62,27 @@ export class TicketsModule extends Base implements Initializable<never> {
 
         const user = await this.bot.client.users.fetch(userId);
 
-        const starterMessage = (settings.ticketStarterMessage ?? '%user opened a new ticket').replace('%user', `<@${userId}>`).replace('%username', user.username);
+        const starterMessage = (settings.ticketStarterMessage ?? '%user (`%username`) opened a new ticket').replace('%user', `<@${userId}>`).replace('%username', user.username);
 
         const embeds = [];
 
+        const ticket = await Tickets.create({
+            guildId: GUILD_ID,
+            userId,
+            caseId: quickStart.caseId,
+        });
+
         const starterComponent = new ContainerBuilder()
             .setAccentColor(0x00ffff)
-            .addTextDisplayComponents(t => t.setContent(`${user} (\`${user.username}\`} created a new ticket. You can use this channel to discuss this case with other moderators.\nTo reply, use the /reply command. The user will not see your username.\nYou can close the ticket using buttons below, or by using the /ticket-close command.\n`))
+            .addTextDisplayComponents(t => t.setContent(`${user} (\`${user.username}\`} created a new ticket (#${ticket.ticketId}). You can use this channel to discuss this case with other moderators.\nTo reply, use the /reply command. The user will not see your username.\nYou can close the ticket using buttons below, or by using the /ticket-close command.\n`))
             .addSeparatorComponents(s => s)
             .addActionRowComponents(r => r.setComponents(
-                new ButtonBuilder().setLabel('Lock ticket').setStyle(ButtonStyle.Secondary).setCustomId('lock'),
-                new ButtonBuilder().setLabel('Close ticket').setStyle(ButtonStyle.Danger).setCustomId('close'),
-                new ButtonBuilder().setLabel('Block user').setStyle(ButtonStyle.Danger).setCustomId('block'),
-                new ButtonBuilder().setLabel('Some other option').setStyle(ButtonStyle.Success).setCustomId('other'),
+                new ButtonBuilder().setLabel('Lock ticket').setStyle(ButtonStyle.Secondary).setCustomId(`ticket-lock_${ticket.ticketId}`),
+                new ButtonBuilder().setLabel('Close ticket').setStyle(ButtonStyle.Danger).setCustomId(`ticket-close_${ticket.ticketId}`),
+                new ButtonBuilder().setLabel('Block user').setStyle(ButtonStyle.Danger).setCustomId(`ticket-block_${ticket.ticketId}`),
             ))
+            .addSeparatorComponents(s => s)
+            .addTextDisplayComponents(t => t.setContent('All tickets are transcribed and archived for future reference. Please make sure to keep all discussions professional and respectful.'))
             .addSeparatorComponents(s => s)
             .addTextDisplayComponents(t => t.setContent(`-# NOTE: If user is engaging in stalking, targeted harassment, threats, doxxing, attention seeking, or mentally unwell/unstable/obsessive behavior, please **do not respond**. A response is not always necessary, use your best judgement. Do not respond if waiting for a ban by Server Moderators.`));
 
@@ -105,6 +127,12 @@ export class TicketsModule extends Base implements Initializable<never> {
             components: [starterComponent],
             flags: [MessageFlags.IsComponentsV2],
         });
+
+        await Tickets.updateOne({
+            ticketId: ticket.ticketId,
+        }, {
+            channelId: thread.id,
+        });
         
         if (quickStart.message) {
             const messageEmbed = new EmbedBuilder()
@@ -116,23 +144,224 @@ export class TicketsModule extends Base implements Initializable<never> {
             thread.send({ embeds: [messageEmbed] });
         }
 
-        await Tickets.create({
-            guildId: GUILD_ID,
-            userId,
-            channelId: thread.id,
-            caseId: quickStart.caseId,
-        });
-
         this.ticketChannels.add(thread.id);
 
         return {
             success: true,
-            reason: ''
+            reason: 'OK'
         }
     }
 
-    async closeTicket() {
+    isTicket(channelId: string) {
+        return this.ticketChannels.has(channelId);
+    }
 
+    async getTicket(channelId: string) {
+        return await Tickets.findOne({
+            guildId: GUILD_ID,
+            channelId
+        });
+    }
+
+    async hasActiveTicket(userId: string) {
+        return !!(await Tickets.findOne({
+            guildId: GUILD_ID,
+            userId
+        }));
+    }
+
+    async closeTicket(userId: string, admin: boolean) {
+        const ticket = await Tickets.findOne({
+            guildId: GUILD_ID,
+            userId,
+        });
+        if (!ticket) return {
+            success: false,
+            reason: 'NO_TICKET',
+        }
+
+        const settings = await this.bot.settings.getGuildSettings(GUILD_ID);
+
+        const ticketForum = settings.ticketForum;
+        if (!ticketForum) return {
+            success: false,
+            reason: 'NOT_READY',
+        }
+        
+        const guild = this.bot.client.guilds.cache.get(GUILD_ID);
+        if (!guild) return {
+            success: false,
+            reason: 'NO_GUILD',
+        }
+
+        const channel = await guild.channels.fetch(ticketForum) as ForumChannel;
+        if (!channel) return {
+            success: false,
+            reason: 'NO_CHANNEL',
+        }
+
+        const thread = await channel.threads.fetch(ticket.channelId);
+        if (!thread) return {
+            success: false,
+            reason: 'NO_THREAD',
+        }
+
+        await Tickets.updateOne({
+            ticketId: ticket.ticketId
+        }, {
+            closed: true
+        });
+
+        if (admin) {
+            const container = new ContainerBuilder()
+                .setAccentColor(0x00ffff)
+                .addTextDisplayComponents(t => t.setContent('This ticket has been marked as closed by a moderator. The user can no longer reply in this ticket. Server moderators can now delete this ticket.'))
+                .addActionRowComponents(r => r.setComponents(
+                    new ButtonBuilder().setCustomId(`ticket-delete_${ticket.ticketId}`).setLabel('Delete').setStyle(ButtonStyle.Danger),
+                ));
+            
+            thread.send({
+                components: [container],
+                flags: [MessageFlags.IsComponentsV2],
+            });
+
+            const dm = new ContainerBuilder()
+                .setAccentColor(0x00ffff)
+                .addTextDisplayComponents(t => t.setContent('Your ticket has been closed by a moderator. You can no longer reply in this ticket. If you want to discuss this case further, please open a new ticket and reference the previous ticket ID.'))
+                .addSeparatorComponents(s => s)
+                .addTextDisplayComponents(t => t.setContent('If you believe this action was taken in error, please contact the server moderators.'));
+            
+            const user = await this.bot.client.users.fetch(userId);
+            if (user) {
+                user.send({
+                    components: [dm],
+                    flags: [MessageFlags.IsComponentsV2],
+                });
+            }
+        } else {
+            const container = new ContainerBuilder()
+                .setAccentColor(0x00ffff)
+                .addTextDisplayComponents(t => t.setContent("This ticket has been marked as closed by the user. This ticket can only be re-opened on user's request. Server moderators can now delete this ticket."))
+                .addActionRowComponents(r => r.setComponents(
+                    new ButtonBuilder().setCustomId(`ticket-delete_${ticket.ticketId}`).setLabel('Delete').setStyle(ButtonStyle.Danger),
+                ));
+            
+            thread.send({
+                components: [container],
+                flags: [MessageFlags.IsComponentsV2],
+            });
+    
+            const dm = new ContainerBuilder()
+                .setAccentColor(0x00ffff)
+                .addTextDisplayComponents(t => t.setContent('You have successfully closed the ticket. You can still re-open this ticket until a moderator deletes it. If you want to re-open the ticket, please press the button below.'))
+                .addActionRowComponents(r => r.setComponents(
+                    new ButtonBuilder().setCustomId(`ticket-reopen_${ticket.ticketId}`).setLabel('Re-open ticket').setStyle(ButtonStyle.Primary),
+                ));
+            
+            const user = await this.bot.client.users.fetch(userId);
+            if (user) {
+                user.send({
+                    components: [dm],
+                    flags: [MessageFlags.IsComponentsV2],
+                });
+            }
+        }
+
+        return {
+            success: true,
+            reason: 'OK',
+        }
+    }
+
+    async deleteTicket(ticketId: string) {
+        const ticket = await Tickets.findOne({
+            guildId: GUILD_ID,
+            ticketId,
+        });
+        if (!ticket) return {
+            success: false,
+            reason: 'NO_TICKET',
+        }
+
+        const settings = await this.bot.settings.getGuildSettings(GUILD_ID);
+
+        const ticketForum = settings.ticketForum;
+        if (!ticketForum) return {
+            success: false,
+            reason: 'NOT_READY',
+        }
+        
+        const guild = this.bot.client.guilds.cache.get(GUILD_ID);
+        if (!guild) return {
+            success: false,
+            reason: 'NO_GUILD',
+        }
+
+        const channel = await guild.channels.fetch(ticketForum) as ForumChannel;
+        if (!channel) return {
+            success: false,
+            reason: 'NO_CHANNEL',
+        }
+
+        const thread = await channel.threads.fetch(ticket.channelId);
+        if (!thread) return {
+            success: false,
+            reason: 'NO_THREAD',
+        }
+
+        const transcript = await this.generateTicketTranscript(thread);
+        const transcriptName = `ticket-${ticket.userId}-${ticket.ticketId}.html`;
+
+        if (settings.transcriptChannel) {
+            const transcriptChannel = await guild.channels.fetch(settings.transcriptChannel) as TextChannel;
+            if (transcriptChannel) {
+                const transcriptEmbed = new EmbedBuilder()
+                    .setTitle(`Ticket ${ticket.ticketId} closed`)
+                    .addFields([
+                        { name: 'User', value: `<@${ticket.userId}>` },
+                        { name: 'Opened at', value: formatDate(new Date(ticket.createdAt)) }
+                    ])
+                    .setFooter(getFooter());
+
+                transcriptChannel.send({
+                    embeds: [transcriptEmbed],
+                    files: [new AttachmentBuilder(transcript).setName(transcriptName)],
+                });
+            }
+        }
+
+        mkdirSync(path.join(this.TRANSCRIPTS_DIR, 'meta'), { recursive: true });
+
+        writeFileSync(path.join(this.TRANSCRIPTS_DIR, transcriptName), transcript, {
+            encoding: 'utf-8'
+        });
+
+        const transcriptMetadata = {
+            id: ticket.ticketId,
+            userId: ticket.userId,
+            createdAt: ticket.createdAt,
+        };
+
+        writeFileSync(path.join(this.TRANSCRIPTS_DIR, 'meta', `ticket-${ticket.userId}-${ticket.ticketId}.json`), JSON.stringify(transcriptMetadata), {
+            encoding: 'utf-8'
+        });
+
+        await thread.delete('Ticket closed');
+
+        return {
+            success: true,
+            reason: 'OK',
+        }
+    }
+
+    async generateTicketTranscript(thread: ForumThreadChannel) {
+        return await createTranscript(thread, {
+            limit: -1,
+            returnType: ExportReturnType.Buffer,
+            saveImages: true,
+            footerText: '',
+            favicon: 'guild',
+        });
     }
 
     private async getTicketChannelWebhook(channel: ForumChannel) {
@@ -150,7 +379,7 @@ export class TicketsModule extends Base implements Initializable<never> {
         return webhook;
     }
 
-    async sendTicketMessage(userId: string, message: string, channelId: string) {
+    async sendTicketMessage(userId: string, message: Message, channelId: string) {
         const settings = await this.bot.settings.getGuildSettings(GUILD_ID);
 
         const ticketForum = settings.ticketForum;
@@ -174,17 +403,19 @@ export class TicketsModule extends Base implements Initializable<never> {
             threadId: channelId,
             username: user.username,
             avatarURL: user.displayAvatarURL(),
-            content: message,
+            content: message.content,
+            files: [...message.attachments.values()],
             allowedMentions: { parse: [] },
         });
     }
 
-    async sendTicketDM(userId: string, message: string) {
+    async sendTicketDM(userId: string, message: Message) {
         const user = await this.bot.client.users.fetch(userId);
         if (!user) return;
 
         user.send({
-            content: message,
+            content: message.content,
+            files: [...message.attachments.values()],
             allowedMentions: { parse: [] },
         });
     }
@@ -198,7 +429,7 @@ export class TicketsModule extends Base implements Initializable<never> {
         if (!ticket) {
             // todo: create ticket
         } else {
-            this.sendTicketMessage(message.author.id, message.content, ticket.channelId);
+            this.sendTicketMessage(message.author.id, message, ticket.channelId);
         }
     }
 
@@ -211,7 +442,7 @@ export class TicketsModule extends Base implements Initializable<never> {
 
             if (!ticket) return;
 
-            this.sendTicketDM(ticket.userId, message.content);            
+            this.sendTicketDM(ticket.userId, message);            
         }
     }
 
