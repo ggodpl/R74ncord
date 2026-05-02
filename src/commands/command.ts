@@ -1,4 +1,4 @@
-import { ApplicationCommandOptionBase, ApplicationCommandOptionType, ChatInputCommandInteraction, PermissionsBitField, RESTPostAPIChatInputApplicationCommandsJSONBody, SlashCommandAttachmentOption, SlashCommandBooleanOption, SlashCommandBuilder, SlashCommandChannelOption, SlashCommandIntegerOption, SlashCommandMentionableOption, SlashCommandNumberOption, SlashCommandRoleOption, SlashCommandStringOption, SlashCommandUserOption } from "discord.js";
+import { ApplicationCommandOptionBase, ApplicationCommandOptionType, ChatInputCommandInteraction, InteractionContextType, PermissionsBitField, RESTPostAPIChatInputApplicationCommandsJSONBody, SlashCommandAttachmentOption, SlashCommandBooleanOption, SlashCommandBuilder, SlashCommandChannelOption, SlashCommandIntegerOption, SlashCommandMentionableOption, SlashCommandNumberOption, SlashCommandRoleOption, SlashCommandStringOption, SlashCommandUserOption } from "discord.js";
 import { Bot } from "../bot";
 import { Logger } from "../logger";
 
@@ -16,7 +16,7 @@ export const PermissionsMap = {
     [CommandPermissionLevel.DEV]: "0",
     [CommandPermissionLevel.ADMIN]: PermissionsBitField.Flags.Administrator,
     [CommandPermissionLevel.MOD]: PermissionsBitField.Flags.BanMembers,
-    [CommandPermissionLevel.CHAT_MOD]: PermissionsBitField.Flags.KickMembers,
+    [CommandPermissionLevel.CHAT_MOD]: PermissionsBitField.Flags.ManageMessages,
 }
 
 export interface CommandData {
@@ -26,6 +26,8 @@ export interface CommandData {
     category?: string;
     aliases?: string[];
     options?: ApplicationCommandOptionBase[];
+    isEphemeral?: boolean;
+    dm?: boolean;
 }
 
 export abstract class Command {
@@ -108,6 +110,8 @@ export abstract class Command {
                 }
             }
         }
+
+        if (this.data.dm) builder.setContexts(InteractionContextType.Guild, InteractionContextType.BotDM);
 
         return builder.toJSON();
     }

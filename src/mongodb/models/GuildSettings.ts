@@ -9,7 +9,14 @@ const schema = new Schema({
     message: {
         type: String,
         default: "%user% has reached level %level%!"
-    }
+    },
+    modlog: String,
+    ticketForum: String,
+    ticketStarterMessage: {
+        type: String,
+        default: '%user (`%username`) opened a new ticket'
+    },
+    transcriptChannel: String,
 });
 
 export default model('GuildSetting', schema);

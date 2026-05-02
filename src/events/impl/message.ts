@@ -12,6 +12,8 @@ export default class MessageHandler extends EventHandle<'messageCreate'> {
 
     execute(bot: Bot, message: Message): void {
         if (message.author.bot) return;
-        bot.xp.gain(message.author.id, message.guildId, message.channelId);
+        if (message.guildId) bot.xp.gain(message.author.id, message.guildId, message.channelId);
+        
+        bot.tickets.onMessage(message);
     }
 }
