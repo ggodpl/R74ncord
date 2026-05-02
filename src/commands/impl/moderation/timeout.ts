@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, Colors, EmbedBuilder, SlashCommandStringOption, SlashCommandUserOption } from 'discord.js';
+import { ButtonBuilder, ButtonStyle, ChatInputCommandInteraction, Colors, ContainerBuilder, EmbedBuilder, MessageFlags, SlashCommandStringOption, SlashCommandUserOption } from 'discord.js';
 import { Command, CommandPermissionLevel } from '../../command';
 import { Bot } from '../../../bot';
 import { Infraction } from '../../../modules/moderation';
@@ -56,14 +56,18 @@ export default class Timeout extends Command {
 
         const savedCase = await bot.moderation.registerInfraction(command.guildId, user.id, infraction);
 
-        const dm = new EmbedBuilder()
-            .setTitle('Timeout')
-            .setDescription(`You have been timed out for \`${reason ?? 'No reason provided'}\` in **${command.guild.name}**. Your timeout expires ${getRelativeTimestamp(durationMs)}`)
-            .setColor(Colors.Orange);
-        
+        const dm = new ContainerBuilder()
+            .addTextDisplayComponents(t => t.setContent(`You have been timed out for \`${reason ?? 'No reason provided'}\` in **${command.guild.name}**. Your timeout expires ${getRelativeTimestamp(durationMs)}`))
+            .addSeparatorComponents(s => s)
+            .addTextDisplayComponents(t => t.setContent('If you believe this is a mistake, you can press the button below to start a new ticket.'))
+            .addActionRowComponents(r => r.setComponents(
+                new ButtonBuilder().setStyle(ButtonStyle.Danger).setLabel('Appeal').setCustomId(`ticket-open_${user.id}_${savedCase.caseId}`)
+            ));
+
         try {
             await user.send({
-                embeds: [dm],
+                components: [dm],
+                flags: [MessageFlags.IsComponentsV2],
             });
         } catch {};
 

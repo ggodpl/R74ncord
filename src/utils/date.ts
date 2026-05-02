@@ -5,5 +5,5 @@ export const formatDate = (date: Date) => {
 }
 
 export const getRelativeTimestamp = (duration: number) => {
-    return `<t:${(Date.now() + duration) / 1000}:R>`;
+    return `<t:${Math.floor((Date.now() + duration) / 1000)}:R>`;
 }

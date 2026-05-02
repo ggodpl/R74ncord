@@ -13,10 +13,12 @@ const schema = new Schema({
     channelId: String,
     ticketId: Number,
     caseId: Number,
-    closed: {
-        type: Boolean,
-        default: false,
-    }
+    status: {
+        type: String,
+        enum: ['open', 'closed', 'archived'],
+        default: 'open'
+    },
+    closedBy: String,
 }, {
     timestamps: true,
 });
@@ -41,5 +43,7 @@ schema.pre('validate', async function () {
 
     this.ticketId = counter!.counter;
 });
+
+schema.index({ guildId: 1, userId: 1, status: 1 }, { unique: true, partialFilterExpression: { status: { $ne: 'archived' } } });
 
 export default model('Ticket', schema);

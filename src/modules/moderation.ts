@@ -23,7 +23,14 @@ export class ModerationModule extends Base {
         return await Infractions.findOne({
             guildId,
             caseId
-        }).lean();
+        });
+    }
+
+    async removeCase(guildId: string, caseId: number) {
+        return await Infractions.findOneAndDelete({
+            guildId,
+            caseId
+        });
     }
 
     async registerInfraction(guildId: string, userId: string, infraction: Infraction) {
@@ -43,12 +50,12 @@ export class ModerationModule extends Base {
                 { name: 'Type', value: `\`${infraction.type}\`` },
                 { name: 'Target', value: `<@${userId}>` },
                 { name: 'Moderator', value: `<@${infraction.moderator}>` },
-                { name: 'Reason', value: infraction.reason },
-                { name: 'Case ID', value: `${savedCase.caseId}` },
+                { name: 'Reason', value: `\`${infraction.reason ?? 'No reason provided'}\`` },
+                { name: 'Case ID', value: `\`${savedCase.caseId ?? 0}\`` },
             ];
             
             if (infraction.duration) {
-                fields.push({ name: 'Duration', value: `${ms(infraction.duration)}` });
+                fields.push({ name: 'Duration', value: `\`${ms(infraction.duration)}\`` });
             }
 
             const embed = new EmbedBuilder()

@@ -41,13 +41,10 @@ export default class Warn extends Command {
             .setAccentColor(Colors.Yellow)
             .addTextDisplayComponents(t => t.setContent(`You have been warned for \`${reason ?? 'No reason provided'}\` in **${command.guild.name}**`))
             .addSeparatorComponents(s => s)
+            .addTextDisplayComponents(t => t.setContent('If you believe this is a mistake, you can press the button below to start a new ticket.'))
             .addActionRowComponents(r => r.setComponents(
-                new ButtonBuilder().setLabel('Appeal').setCustomId('appeal').setStyle(ButtonStyle.Danger)
+                new ButtonBuilder().setStyle(ButtonStyle.Danger).setLabel('Appeal').setCustomId(`ticket-open_${user.id}_${savedCase.caseId}`)
             ));
-        // const dm = new EmbedBuilder()
-        //     .setTitle('Warn')
-        //     .setDescription(`You have been warned for \`${reason ?? 'No reason provided'}\` in **${command.guild.name}**`)
-        //     .setColor(Colors.Yellow);
         
         try {
             await user.send({

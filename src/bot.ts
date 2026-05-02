@@ -12,7 +12,10 @@ import { LevelElementsModule } from "./modules/levelElements";
 import { LevelRolesModule } from "./modules/levelRoles";
 import { ModerationModule } from "./modules/moderation";
 import { Scheduler } from "./modules/scheduler";
-import { TicketsModule } from "./modules/tickets";
+import { TicketsModule } from "./modules/tickets/tickets";
+import { ButtonHandler } from "./handlers/buttonHandler";
+import { ContextMenuHandler } from "./handlers/contextMenuHandler";
+import { CommandJointDeployer } from "./modules/commandJointDeployer";
 
 export class Bot {
     client: Client;
@@ -22,6 +25,8 @@ export class Bot {
 
     commands!: CommandHandler;
     events!: EventHandler;
+    buttons!: ButtonHandler;
+    contextMenus!: ContextMenuHandler;
 
     db: MongoDB;
     levels: LevelsModule;
@@ -32,6 +37,7 @@ export class Bot {
     moderation: ModerationModule;
     scheduler: Scheduler;
     tickets: TicketsModule;
+    jointDeployer: CommandJointDeployer;
 
     constructor (options?: ClientOptions) {
         this.client = new Client({ intents: ['Guilds', 'GuildMessages', 'MessageContent', 'DirectMessages', 'GuildBans', 'GuildModeration'], partials: [Partials.Channel], ...options });
@@ -41,6 +47,8 @@ export class Bot {
 
         this.commands = undefined;
         this.events = undefined;
+        this.buttons = undefined;
+        this.contextMenus = undefined;
 
         this.db = new MongoDB(this);
         this.levels = new LevelsModule(this);
@@ -51,6 +59,7 @@ export class Bot {
         this.moderation = new ModerationModule(this);
         this.scheduler = new Scheduler(this);
         this.tickets = new TicketsModule(this);
+        this.jointDeployer = new CommandJointDeployer(this);
     }
 
     addEventHandle(event: string, listener: EventHandle<any>) {
@@ -73,6 +82,18 @@ export class Bot {
         return this;
     }
 
+    setButtonHandler(handler: ButtonHandler) {
+        this.buttons = handler;
+        
+        return this;
+    }
+
+    setContextMenuHandler(handler: ContextMenuHandler) {
+        this.contextMenus = handler;
+
+        return this;
+    }
+
     registerCategories(...categories: CommandCategory[]) {
         this.commands.registerCategories(categories);
 
@@ -82,13 +103,15 @@ export class Bot {
     async init() {
         await this.commands.initialize();
         await this.events.initialize();
-
-        await this.commands.deployCommands();
+        await this.buttons.initialize();
+        await this.contextMenus.initialize();
 
         await this.db.initialize(process.env.MONGODB_URI);
 
         RankCard.initialize();
         this.tickets.initialize();
+
+        this.jointDeployer.initialize();
     }
 
     login() {

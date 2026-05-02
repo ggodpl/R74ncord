@@ -61,7 +61,7 @@ export class CommandHandler extends Handler<Command> {
                     content: ''
                 });
                 
-                return Logger.warn(`Unregistered command has been called: ${interaction.commandName}`);
+                return Logger.warn(`Unregistered command has been called: ${interaction.commandName}`, 'COMMAND');
             }
 
             await interaction.deferReply({
@@ -89,15 +89,11 @@ export class CommandHandler extends Handler<Command> {
         }
     }
 
-    async deployCommands() {
+    deployCommands() {
         const commands = this.slashCommands.toArray();
 
         Logger.log(`Deploying ${commands.length} commands`, "HANDLER");
 
-        const rest = new REST().setToken(process.env.DISCORD_TOKEN!);
-        await rest.put(
-            Routes.applicationCommands(this.bot.clientId),
-            { body: commands }
-        );
+        return commands;
     }
 }

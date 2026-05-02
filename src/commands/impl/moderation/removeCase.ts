@@ -3,21 +3,21 @@ import { Command, CommandPermissionLevel } from '../../command';
 import { Bot } from '../../../bot';
 import { getFooter } from '../../../utils/embed';
 
-export default class Case extends Command {
+export default class RemoveCase extends Command {
     constructor () {
         super({
-            name: 'case',
-            description: 'Displays info about a specific case',
-            permissionLevel: CommandPermissionLevel.CHAT_MOD,
+            name: 'remove-case',
+            description: 'Removes a specific case',
+            permissionLevel: CommandPermissionLevel.MOD,
             options: [
                 new SlashCommandIntegerOption()
                     .setName('case')
-                    .setDescription('Case to display')
+                    .setDescription('Case to remove')
                     .setRequired(true)
                     .setMinValue(0)
             ],
-            aliases: ['infraction']
-        })
+            aliases: ['delete-case']
+        });
     }
 
     async execute(bot: Bot, command: ChatInputCommandInteraction): Promise<void> {
@@ -39,25 +39,16 @@ export default class Case extends Command {
             return;
         }
 
-        const fields = [
-            { name: 'Type', value: `\`${caseData.infractionType}\`` },
-            { name: 'Moderator', value: `<@${caseData.moderator}>` },
-            { name: 'Reason', value: caseData.reason },
-            { name: 'Case ID', value: `${caseData.caseId}` },
-        ];
-
-        if (caseData.duration) {
-            fields.push({ name: 'Duration', value: `${caseData.duration}` });
-        }
+        await bot.moderation.removeCase(command.guildId, caseId);
 
         const embed = new EmbedBuilder()
-            .setTitle(`Case ${caseId}`)
-            .addFields(fields)
+            .setTitle(null)
+            .setDescription(`Case #${caseId} removed successfully`)
             .setColor(0x00ffff)
             .setFooter(getFooter(command.user.displayAvatarURL()));
 
         command.editReply({
-            embeds: [embed],
+            embeds: [embed]
         });
     }
 }

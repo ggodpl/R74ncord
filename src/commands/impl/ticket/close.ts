@@ -1,5 +1,5 @@
-import { ChatInputCommandInteraction, SlashCommandUserOption } from 'discord.js';
-import { Command, CommandPermissionLevel } from '../../command';
+import { ChatInputCommandInteraction } from 'discord.js';
+import { Command } from '../../command';
 import { Bot } from '../../../bot';
 
 export default class Close extends Command {
@@ -12,13 +12,13 @@ export default class Close extends Command {
     }
 
     async execute(bot: Bot, command: ChatInputCommandInteraction): Promise<void> {
-        if (await bot.tickets.hasActiveTicket(command.user.id)) {
-            const result = await bot.tickets.closeTicket(command.user.id, false);
+        if (await bot.tickets.getTicketByUser(command.user.id)) {
+            const result = await bot.tickets.closeTicket(command.user.id, command.user.id);
 
             if (result.success) {
                 command.editReply('Ticket closed successfully');
             } else {
-                command.editReply(bot.tickets.RESPONSES[result.reason] || 'An unknown error occurred while closing the ticket');
+                command.editReply(result.reason || 'An unknown error occurred while closing the ticket');
             }
         } else {
             command.editReply('You have no active tickets');

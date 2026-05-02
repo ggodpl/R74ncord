@@ -1,4 +1,4 @@
-import { ApplicationCommandOptionBase, ApplicationCommandOptionType, ChatInputCommandInteraction, PermissionsBitField, RESTPostAPIChatInputApplicationCommandsJSONBody, SlashCommandAttachmentOption, SlashCommandBooleanOption, SlashCommandBuilder, SlashCommandChannelOption, SlashCommandIntegerOption, SlashCommandMentionableOption, SlashCommandNumberOption, SlashCommandRoleOption, SlashCommandStringOption, SlashCommandUserOption } from "discord.js";
+import { ApplicationCommandOptionBase, ApplicationCommandOptionType, ChatInputCommandInteraction, InteractionContextType, PermissionsBitField, RESTPostAPIChatInputApplicationCommandsJSONBody, SlashCommandAttachmentOption, SlashCommandBooleanOption, SlashCommandBuilder, SlashCommandChannelOption, SlashCommandIntegerOption, SlashCommandMentionableOption, SlashCommandNumberOption, SlashCommandRoleOption, SlashCommandStringOption, SlashCommandUserOption } from "discord.js";
 import { Bot } from "../bot";
 import { Logger } from "../logger";
 
@@ -110,6 +110,8 @@ export abstract class Command {
                 }
             }
         }
+
+        if (this.data.dm) builder.setContexts(InteractionContextType.Guild, InteractionContextType.BotDM);
 
         return builder.toJSON();
     }
