@@ -70,6 +70,9 @@ export class CommandHandler extends Handler<Command> {
                 });
             }
 
+            await interaction.deferReply({
+                flags: command.data.isEphemeral ? [MessageFlags.Ephemeral] : []
+            });
             command.execute(this.bot, interaction);
         } catch (err) {
             Logger.error(`Error executing command: ${err}`, "COMMAND");
