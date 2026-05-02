@@ -1,12 +1,12 @@
-import { Message } from "discord.js";
-import { Bot } from "../../bot";
-import { EventHandle } from "../handle";
+import { Message } from 'discord.js';
+import { Bot } from '../../bot';
+import { Event } from '../event';
 
-export default class MessageHandler extends EventHandle<'messageCreate'> {
+export default class MessageHandler extends Event<'messageCreate'> {
     constructor () {
         super({
-            name: "message",
-            event: "messageCreate"
+            name: 'message',
+            event: 'messageCreate'
         });
     }
 

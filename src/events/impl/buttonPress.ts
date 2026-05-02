@@ -1,8 +1,8 @@
 import { BaseInteraction } from 'discord.js';
 import { Bot } from '../../bot';
-import { EventHandle } from '../handle';
+import { Event } from '../event';
 
-export default class ButtonPressHandler extends EventHandle<'interactionCreate'> {
+export default class ButtonPressHandler extends Event<'interactionCreate'> {
     constructor () {
         super({
             name: 'buttonPress',

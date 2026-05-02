@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, Colors, EmbedBuilder, MessageFlags, REST, Routes } from "discord.js";
+import { ChatInputCommandInteraction, Colors, EmbedBuilder, MessageFlags, ModalSubmitInteraction, REST, Routes } from "discord.js";
 import { Bot } from "../bot";
 import { Command, CommandCategory, SlashCommandJSON } from "../commands/command";
 import { Logger } from "../logger";
@@ -64,9 +64,12 @@ export class CommandHandler extends Handler<Command> {
                 return Logger.warn(`Unregistered command has been called: ${interaction.commandName}`, 'COMMAND');
             }
 
-            await interaction.deferReply({
-                flags: command.data.isEphemeral ? [MessageFlags.Ephemeral] : []
-            });
+            if (!command.data.isModal) {
+                await interaction.deferReply({
+                    flags: command.data.isEphemeral ? [MessageFlags.Ephemeral] : []
+                });
+            }
+
             command.execute(this.bot, interaction);
         } catch (err) {
             Logger.error(`Error executing command: ${err}`, "COMMAND");
@@ -81,6 +84,16 @@ export class CommandHandler extends Handler<Command> {
                 content: ''
             });
         }
+    }
+    
+    onModal(interaction: ModalSubmitInteraction, id: string) {
+        const commandName = id.replace('-modal', '');
+        const command = this.registry.get(commandName);
+
+        if (!command) return;
+        if (!command.isModal()) return;
+
+        command.onModal(this.bot, interaction);
     }
 
     registerCategories(categories: CommandCategory[]) {

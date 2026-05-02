@@ -41,7 +41,7 @@ export default class Case extends Command {
 
         const fields = [
             { name: 'Type', value: `\`${caseData.infractionType}\`` },
-            { name: 'Moderator', value: `<@${caseData.moderator}>` },
+            { name: 'Moderator', value: caseData.isAutomod ? '`Automod`' : `<@${caseData.moderator}>` },
             { name: 'Reason', value: caseData.reason },
             { name: 'Case ID', value: `${caseData.caseId}` },
         ];

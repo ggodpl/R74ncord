@@ -1,4 +1,4 @@
-import { ApplicationCommandOptionBase, ApplicationCommandOptionType, ChatInputCommandInteraction, InteractionContextType, PermissionsBitField, RESTPostAPIChatInputApplicationCommandsJSONBody, SlashCommandAttachmentOption, SlashCommandBooleanOption, SlashCommandBuilder, SlashCommandChannelOption, SlashCommandIntegerOption, SlashCommandMentionableOption, SlashCommandNumberOption, SlashCommandRoleOption, SlashCommandStringOption, SlashCommandUserOption } from "discord.js";
+import { ApplicationCommandOptionBase, ApplicationCommandOptionType, ChatInputCommandInteraction, InteractionContextType, ModalSubmitInteraction, PermissionsBitField, RESTPostAPIChatInputApplicationCommandsJSONBody, SlashCommandAttachmentOption, SlashCommandBooleanOption, SlashCommandBuilder, SlashCommandChannelOption, SlashCommandIntegerOption, SlashCommandMentionableOption, SlashCommandNumberOption, SlashCommandRoleOption, SlashCommandStringOption, SlashCommandUserOption } from "discord.js";
 import { Bot } from "../bot";
 import { Logger } from "../logger";
 
@@ -28,6 +28,7 @@ export interface CommandData {
     options?: ApplicationCommandOptionBase[];
     isEphemeral?: boolean;
     dm?: boolean;
+    isModal?: boolean;
 }
 
 export abstract class Command {
@@ -51,6 +52,10 @@ export abstract class Command {
 
     getCategory() {
         return this.data.category;
+    }
+
+    isModal(): this is ModalCommand {
+        return this.data.isModal;
     }
 
     setCategory(category: string) {
@@ -117,6 +122,10 @@ export abstract class Command {
     }
 
     abstract execute(bot: Bot, command: ChatInputCommandInteraction): void;
+}
+
+export interface ModalCommand {
+    onModal(bot: Bot, interaction: ModalSubmitInteraction): void;
 }
 
 export interface CommandCategory {

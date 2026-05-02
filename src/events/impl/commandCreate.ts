@@ -1,12 +1,12 @@
-import { BaseInteraction, ChatInputCommandInteraction } from "discord.js";
-import { Bot } from "../../bot";
-import { EventHandle } from "../handle";
+import { BaseInteraction, ChatInputCommandInteraction } from 'discord.js';
+import { Bot } from '../../bot';
+import { Event } from '../event';
 
-export default class CommandCreateHandler extends EventHandle<'interactionCreate'> {
+export default class CommandCreateHandler extends Event<'interactionCreate'> {
     constructor () {
         super({
-            name: "commandCreate",
-            event: "interactionCreate",
+            name: 'commandCreate',
+            event: 'interactionCreate',
             once: false,
         });
     }

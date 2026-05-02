@@ -1,4 +1,4 @@
-import { ForumChannel, ForumThreadChannel, Message, MessageCreateOptions, MessagePayload, User, Webhook, WebhookType } from 'discord.js';
+import { Attachment, ForumChannel, ForumThreadChannel, Message, MessageCreateOptions, MessagePayload, User, Webhook, WebhookType } from 'discord.js';
 import { Base } from '../../base';
 import { Logger } from '../../logger';
 export class TicketTransport extends Base {
@@ -50,6 +50,8 @@ export class TicketTransport extends Base {
                 files: [...message.attachments.values()],
                 allowedMentions: { parse: [] },
             });
+
+            await message.react('✅');
         } catch {
             Logger.warn('Could not send a ticket message');
         }
@@ -63,9 +65,10 @@ export class TicketTransport extends Base {
         });
     }
 
-    async sendStringDM(userId: string, message: string) {
+    async sendReplyDM(userId: string, message: string, files: Attachment[]) {
         this.sendMessageUser(userId, {
             content: message,
+            files,
             allowedMentions: { parse: [] }
         });
     }

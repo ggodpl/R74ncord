@@ -1,5 +1,5 @@
 import { Bot } from '../bot';
-import { UserContextMenuCommandInteraction, MessageContextMenuCommandInteraction, ApplicationCommandType, ContextMenuCommandBuilder, ContextMenuCommandType, RESTPostAPIContextMenuApplicationCommandsJSONBody } from 'discord.js';
+import { UserContextMenuCommandInteraction, MessageContextMenuCommandInteraction, ApplicationCommandType, ContextMenuCommandBuilder, ContextMenuCommandType, RESTPostAPIContextMenuApplicationCommandsJSONBody, ModalSubmitInteraction } from 'discord.js';
 import { CommandPermissionLevel, PermissionsMap } from '../commands/command';
 
 export interface ContextMenuData<T extends ContextMenuCommandType> {
@@ -7,6 +7,7 @@ export interface ContextMenuData<T extends ContextMenuCommandType> {
     type: T;
     permissionLevel?: CommandPermissionLevel;
     isEphemeral?: boolean;
+    isModal?: boolean;
 }
 
 export type ContextMenuJSON = RESTPostAPIContextMenuApplicationCommandsJSONBody;
@@ -26,6 +27,10 @@ export abstract class ContextMenu<T extends ContextMenuCommandType> {
         return this.data.permissionLevel;
     }
 
+    isModal(): this is ModalContextMenu {
+        return this.data.isModal;
+    }
+
     toJSON() {
         const builder = new ContextMenuCommandBuilder()
             .setName(this.getName())
@@ -38,4 +43,8 @@ export abstract class ContextMenu<T extends ContextMenuCommandType> {
     }
 
     abstract execute(bot: Bot, interaction: T extends ApplicationCommandType.User ? UserContextMenuCommandInteraction : MessageContextMenuCommandInteraction): void;
+}
+
+export interface ModalContextMenu {
+    onModal(bot: Bot, interaction: ModalSubmitInteraction): void;
 }

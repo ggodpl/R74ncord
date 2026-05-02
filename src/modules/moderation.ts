@@ -1,14 +1,15 @@
-import { Colors, EmbedBuilder, TextChannel } from 'discord.js';
+import { Colors, EmbedBuilder, Guild, TextChannel, User } from 'discord.js';
 import { Base } from '../base';
 import Infractions from '../mongodb/models/Infractions';
 import { getFooter } from '../utils/embed';
 import ms from 'ms';
 
 export interface Infraction {
-    type: 'warn' | 'timeout' | 'kick' | 'softban' | 'ban' | 'untimeout' | 'unban',
-    reason?: string,
-    moderator: string,
-    duration?: number
+    type: 'warn' | 'timeout' | 'kick' | 'softban' | 'ban' | 'untimeout' | 'unban';
+    reason?: string;
+    moderator?: string;
+    duration?: number;
+    isAutomod?: boolean;
 }
 
 export class ModerationModule extends Base {
@@ -40,7 +41,8 @@ export class ModerationModule extends Base {
             infractionType: infraction.type,
             reason: infraction.reason,
             moderator: infraction.moderator,
-            duration: infraction.duration
+            duration: infraction.duration,
+            isAutomod: infraction.isAutomod,
         });
 
         const settings = await this.bot.settings.getGuildSettings(guildId);
@@ -49,7 +51,7 @@ export class ModerationModule extends Base {
             const fields = [
                 { name: 'Type', value: `\`${infraction.type}\`` },
                 { name: 'Target', value: `<@${userId}>` },
-                { name: 'Moderator', value: `<@${infraction.moderator}>` },
+                { name: 'Moderator', value: infraction.isAutomod ? '`Automod`' : `<@${infraction.moderator}>` },
                 { name: 'Reason', value: `\`${infraction.reason ?? 'No reason provided'}\`` },
                 { name: 'Case ID', value: `\`${savedCase.caseId ?? 0}\`` },
             ];
