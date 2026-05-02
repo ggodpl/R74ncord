@@ -1,5 +1,5 @@
 import { Client, ClientOptions, Partials } from "discord.js";
-import { EventHandle } from "./events/handle";
+import { Event } from "./events/event";
 import { CommandCategory } from "./commands/command";
 import { CommandHandler } from "./handlers/commandHandler";
 import { EventHandler } from "./handlers/eventHandler";
@@ -40,7 +40,7 @@ export class Bot {
     jointDeployer: CommandJointDeployer;
 
     constructor (options?: ClientOptions) {
-        this.client = new Client({ intents: ['Guilds', 'GuildMessages', 'MessageContent', 'DirectMessages', 'GuildBans', 'GuildModeration'], partials: [Partials.Channel], ...options });
+        this.client = new Client({ intents: ['Guilds', 'GuildMessages', 'MessageContent', 'DirectMessages', 'GuildBans', 'GuildModeration', 'GuildMembers'], partials: [Partials.Channel], ...options });
 
         this.clientId = process.env.CLIENT_ID ?? "";
         this.clientSecret = process.env.CLIENT_SECRET ?? "";
@@ -62,7 +62,7 @@ export class Bot {
         this.jointDeployer = new CommandJointDeployer(this);
     }
 
-    addEventHandle(event: string, listener: EventHandle<any>) {
+    addEventHandle(event: string, listener: Event<any>) {
         const handler = (...args: any[]) => listener.execute(this, ...args);
         if (listener.isOnce()) this.client.once(event, handler);
         else this.client.on(event, handler);

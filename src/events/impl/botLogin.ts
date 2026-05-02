@@ -1,12 +1,12 @@
-import { Bot } from "../../bot";
-import { Logger } from "../../logger";
-import { EventHandle } from "../handle";
+import { Bot } from '../../bot';
+import { Logger } from '../../logger';
+import { Event } from '../event';
 
-export default class BotLoginHandler extends EventHandle<'clientReady'> {
+export default class BotLoginHandler extends Event<'clientReady'> {
     constructor () {
         super({
-            name: "botLogin",
-            event: "clientReady",
+            name: 'botLogin',
+            event: 'clientReady',
             once: true
         });
     }

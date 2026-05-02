@@ -1,9 +1,9 @@
 import { Bot } from "../bot";
-import { EventHandle } from "../events/handle";
+import { Event } from "../events/event";
 import { Logger } from "../logger";
 import { Handler } from "./handler";
 
-export class EventHandler extends Handler<EventHandle<any>> {
+export class EventHandler extends Handler<Event<any>> {
     constructor (bot: Bot, directory: string) {
         super(bot, "events", directory);
     }
@@ -14,12 +14,12 @@ export class EventHandler extends Handler<EventHandle<any>> {
 
         const instance = new handle();
 
-        if (!(instance instanceof EventHandle)) return Logger.error(`Invalid event handle at ${Handler.formatPath(path)}`, "EVENT LOADER")
+        if (!(instance instanceof Event)) return Logger.error(`Invalid event handle at ${Handler.formatPath(path)}`, "EVENT LOADER")
 
         this.register(instance.getName(), instance);
     }
 
-    override register(name: string, entity: EventHandle<any>): void {
+    override register(name: string, entity: Event<any>): void {
         super.register(name, entity);
 
         this.bot.addEventHandle(entity.getEvent(), entity);

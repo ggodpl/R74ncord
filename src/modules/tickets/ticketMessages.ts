@@ -18,6 +18,7 @@ export class TicketMessages {
         NO_TICKET: 'No active ticket found.',
         NO_THREAD: 'No ticket thread found.',
         ALREADY_CLOSED: 'Ticket already closed.',
+        CLOSED: 'This ticket is closed. You cannot send any new messages.',
         STILL_OPEN: 'Ticket is still open.',
         ARCHIVED: 'Ticket is archived.',
         OK: 'OK',
@@ -49,7 +50,7 @@ export class TicketMessages {
         const fields = [
             { name: 'Type', value: `\`${infraction.infractionType}\`` },
             { name: 'Target', value: `<@${infraction.userId}>` },
-            { name: 'Moderator', value: `<@${infraction.moderator}>` },
+            { name: 'Moderator', value: infraction.isAutomod ? '`Automod`' : `<@${infraction.moderator}>` },
             { name: 'Reason', value: `\`${infraction.reason ?? 'No reason provided'}\`` },
             { name: 'Case ID', value: `\`${infraction.caseId ?? 0}\`` },
         ];
@@ -123,7 +124,7 @@ export class TicketMessages {
         return {
             embeds: [
                 new EmbedBuilder()
-                    .setTitle(`Ticket ${ticket.ticketId} archived`)
+                    .setTitle(`Ticket #${ticket.ticketId} archived`)
                     .addFields([
                         { name: 'User', value: `<@${ticket.userId}>` },
                         { name: 'Opened at', value: formatDate(new Date(ticket.createdAt)) }

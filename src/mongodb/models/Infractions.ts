@@ -19,9 +19,10 @@ const schema = new Schema({
         default: 'No reason provided'
     },
     caseId: Number,
-    moderator: {
-        type: String,
-        required: true
+    moderator: String,
+    isAutomod: {
+        type: Boolean,
+        defualt: false,
     },
     duration: Number
 }, {

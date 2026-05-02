@@ -7,7 +7,7 @@ import path from 'path';
 import { promises as fs } from 'fs';
 import { Bot } from '../../bot';
 import { createTranscript, ExportReturnType } from 'discord-html-transcripts';
-import { ForumChannel, ForumThreadChannel, Guild, Message, MessageFlags, TextChannel } from 'discord.js';
+import { Attachment, ForumChannel, ForumThreadChannel, Guild, Message, MessageFlags, TextChannel } from 'discord.js';
 
 export interface QuickStart {
     caseId?: number;
@@ -249,18 +249,26 @@ export class TicketsModule extends Base implements Initializable<never> {
         if (!message.guildId) return this.onMessageDM(message);
     }
 
-    async reply(channelId: string, content: string) {
+    async reply(channelId: string, content: string, files?: Attachment[]) {
         const ticket = await TicketRepository.getTicketChannel(GUILD_ID, channelId);
-        if (!ticket) return;
+        if (!ticket) return this.fail('NO_TICKET');
 
-        this.transport.sendStringDM(ticket.userId, content);
+        if (ticket.status != 'open') return this.fail('CLOSED');
+
+        this.transport.sendReplyDM(ticket.userId, content, files ?? []);
+    
+        return this.success();
     }
 
     async sendMessage(message: Message) {
         const ticket = await TicketRepository.getTicketChannel(GUILD_ID, message.channel.id);
-        if (!ticket) return;
+        if (!ticket) return this.fail('NO_TICKET');
+
+        if (ticket.status != 'open') return this.fail('CLOSED');
 
         this.transport.sendTicketDM(ticket.userId, message);
+    
+        return this.success();
     }
 
     async blockUser(userId: string) {

@@ -1,12 +1,12 @@
-import { BaseInteraction, ContextMenuCommandInteraction, MessageContextMenuCommandInteraction, UserContextMenuCommandInteraction } from "discord.js";
-import { Bot } from "../../bot";
-import { EventHandle } from "../handle";
+import { BaseInteraction, MessageContextMenuCommandInteraction, UserContextMenuCommandInteraction } from 'discord.js';
+import { Bot } from '../../bot';
+import { Event } from '../event';
 
-export default class ContextMenuCreateHandler extends EventHandle<'interactionCreate'> {
+export default class ContextMenuCreateHandler extends Event<'interactionCreate'> {
     constructor () {
         super({
-            name: "contextMenuCreate",
-            event: "interactionCreate",
+            name: 'contextMenuCreate',
+            event: 'interactionCreate',
             once: false,
         });
     }

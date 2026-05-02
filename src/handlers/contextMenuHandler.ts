@@ -1,4 +1,4 @@
-import { Colors, ContextMenuCommandType, EmbedBuilder, MessageContextMenuCommandInteraction, MessageFlags, REST, Routes, UserContextMenuCommandInteraction } from 'discord.js';
+import { Colors, ContextMenuCommandType, EmbedBuilder, MessageContextMenuCommandInteraction, MessageFlags, ModalSubmitInteraction, REST, Routes, UserContextMenuCommandInteraction } from 'discord.js';
 import { Bot } from '../bot';
 import { ContextMenu, ContextMenuJSON } from '../contextMenus/contextMenu';
 import { Logger } from '../logger';
@@ -50,9 +50,11 @@ export class ContextMenuHandler extends Handler<ContextMenu<any>> {
                 return Logger.warn(`Unregistered context menu has been called: ${interaction.commandName}`, 'CONTEXT MENU');
             }
 
-            await interaction.deferReply({
-                flags: contextMenu.data.isEphemeral ? [MessageFlags.Ephemeral] : [],
-            });
+            if (!contextMenu.data.isModal) {   
+                await interaction.deferReply({
+                    flags: contextMenu.data.isEphemeral ? [MessageFlags.Ephemeral] : [],
+                });
+            }
 
             contextMenu.execute(this.bot, interaction);
         } catch (err) {
@@ -69,6 +71,16 @@ export class ContextMenuHandler extends Handler<ContextMenu<any>> {
                 content: ''
             });
         }
+    }
+
+    onModal(interaction: ModalSubmitInteraction, id: string) {
+        const contextMenuName = id.replace('-modal', '');
+        const contextMenu = this.registry.get(contextMenuName);
+
+        if (!contextMenu) return;
+        if (!contextMenu.isModal()) return;
+
+        contextMenu.onModal(this.bot, interaction);
     }
 
     deployContextMenus() {

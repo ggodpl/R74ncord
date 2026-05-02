@@ -7,7 +7,7 @@ export interface ListenerData<E> {
     once?: boolean;
 }
 
-export abstract class EventHandle<E extends keyof ClientEvents> {
+export abstract class Event<E extends keyof ClientEvents> {
     data: ListenerData<E>;
 
     constructor (data: ListenerData<E>) {
