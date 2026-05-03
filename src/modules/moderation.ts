@@ -13,6 +13,8 @@ export interface Infraction {
 }
 
 export class ModerationModule extends Base {
+    debouncedPunishments: Map<string, number> = new Map();
+
     async getInfractions(guildId: string, userId: string) {
         return await Infractions.find({
             guildId,
@@ -35,6 +37,11 @@ export class ModerationModule extends Base {
     }
 
     async registerInfraction(guildId: string, userId: string, infraction: Infraction) {
+        if (this.debouncedPunishments.has(`${guildId}_${userId}_${infraction.type}`)) {
+            const punishment = this.debouncedPunishments.get(`${guildId}_${userId}_${infraction.type}`);
+            if (punishment && punishment + 2000 > Date.now()) return;
+        }
+
         const savedCase = await Infractions.create({
             guildId,
             userId,
@@ -77,6 +84,16 @@ export class ModerationModule extends Base {
             });
         }
 
+        this.debouncedPunishments.set(`${guildId}_${userId}_${infraction.type}`, Date.now());
+
+        this.cleanup();
+
         return savedCase;
+    }
+
+    cleanup() {
+        for (const [key, value] of this.debouncedPunishments.entries()) {
+            if (value + 2000 < Date.now()) this.debouncedPunishments.delete(key);
+        }
     }
 }

@@ -51,9 +51,12 @@ export class TicketTransport extends Base {
                 allowedMentions: { parse: [] },
             });
 
-            await message.react('✅');
+            await message.react('🟢');
         } catch {
             Logger.warn('Could not send a ticket message');
+            try {
+                await message.react('🔴');
+            } catch {};
         }
     }
 

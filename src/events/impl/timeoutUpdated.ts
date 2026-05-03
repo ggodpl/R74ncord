@@ -63,6 +63,8 @@ export default class TimeoutUpdated extends Event<'guildMemberUpdate'> {
 
         const savedCase = await bot.moderation.registerInfraction(guild.id, newMember.id, infractionData);
 
+        if (!savedCase) return;
+
         if (isTimedOut) {
             const dm = new ContainerBuilder()
                 .addTextDisplayComponents(t => t.setContent(`You have been timed out for \`${entry.reason ?? 'No reason provided'}\` in **${newMember.guild.name}**. Your timeout expires ${getRelativeTimestamp(infractionData.duration)}`))

@@ -70,15 +70,12 @@ export class CommandHandler extends Handler<Command> {
                 });
             }
 
-            await interaction.deferReply({
-                flags: command.data.isEphemeral ? [MessageFlags.Ephemeral] : []
-            });
             command.execute(this.bot, interaction);
         } catch (err) {
             Logger.error(`Error executing command: ${err}`, "COMMAND");
             const error = new EmbedBuilder()
                 .setTitle('Error')
-                .setDescription('An error occured during execution of this cmomand. Please try again later or contact the moderation team.')
+                .setDescription('An error occured during execution of this command. Please try again later or contact `ggod` on Discord.')
                 .setColor(Colors.Red)
                 .setFooter(getFooter(interaction.user.displayAvatarURL()));
             
