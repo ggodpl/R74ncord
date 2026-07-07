@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, Colors, EmbedBuilder, SlashCommandStringOption, SlashCommandUserOption } from 'discord.js';
+import { BanOptions, ChatInputCommandInteraction, Colors, EmbedBuilder, SlashCommandStringOption, SlashCommandUserOption } from 'discord.js';
 import { Command, CommandPermissionLevel } from '../../command';
 import { Bot } from '../../../bot';
 import { Infraction } from '../../../modules/moderation';
@@ -9,7 +9,7 @@ export default class SoftBan extends Command {
     constructor () {
         super({
             name: 'soft-ban',
-            description: 'Soft-bans the provided user. Soft-bans unban immediately after banning, which let\'s you quickly purge last user messages, while still letting them rejoin afterwards.',
+            description: 'Soft-bans the provided user. Soft-bans unban immediately after banning.',
             permissionLevel: CommandPermissionLevel.MOD,
             options: [
                 new SlashCommandUserOption()
@@ -40,9 +40,9 @@ export default class SoftBan extends Command {
             moderator: command.user.id,
         };
 
-        const banOptions = {
+        const banOptions: BanOptions = {
             reason: reason ?? 'No reason provided'
-        };
+        }
 
         if (purgeMessages && !['0', 'none'].includes(purgeMessages.toLowerCase())) {
             const purgeMs = ms(purgeMessages as StringValue);
@@ -62,7 +62,7 @@ export default class SoftBan extends Command {
 
         const dm = new EmbedBuilder()
             .setTitle('Soft-ban')
-            .setDescription(`You have been soft-banned for \`${reason ?? 'No reason provided'}\` from **${command.guild.name}**. You *can* rejoin the server`)
+            .setDescription(`You have been soft-banned for \`${reason ?? 'No reason provided'}\` from **${command.guild!.name}**. You *can* rejoin the server`)
             .setColor(Colors.DarkOrange);
         
         try {
@@ -71,13 +71,13 @@ export default class SoftBan extends Command {
             });
         } catch {};
 
-        await command.guild.members.ban(user.id, banOptions);
+        await command.guild!.members.ban(user.id, banOptions);
 
-        const savedCase = await bot.moderation.registerInfraction(command.guildId, user.id, infraction);
+        const savedCase = await bot.moderation.registerInfraction(command.guildId!, user.id, infraction);
 
         const embed = new EmbedBuilder()
             .setTitle('Infraction')
-            .setDescription(`\`${savedCase.caseId}\` | Soft-banned ${user} for \`${reason ?? 'No reason provided'}\``)
+            .setDescription(`\`${savedCase!.caseId}\` | Soft-banned ${user} for \`${reason ?? 'No reason provided'}\``)
             .setColor(Colors.DarkOrange)
             .setFooter(getFooter(command.user.displayAvatarURL()));
 

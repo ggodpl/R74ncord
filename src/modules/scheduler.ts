@@ -17,7 +17,7 @@ interface Job<T> {
 }
 
 export class Scheduler extends Base {
-    jobs: Map<string, Job<any>>;
+    jobs: Map<string, Job<unknown>>;
     exec!: CronJob;
     pers: NodeJS.Timeout | undefined;
 
@@ -33,7 +33,7 @@ export class Scheduler extends Base {
         });
     }
 
-    schedule<T>(task: Task<T>, after: number) {
+    schedule<T extends Record<string, unknown>>(task: Task<T>, after: number) {
         const id = randomUUID();
         const job = {
             task: task.TASK_ID,

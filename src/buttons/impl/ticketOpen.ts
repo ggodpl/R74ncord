@@ -2,6 +2,7 @@ import { ButtonBuilder, ButtonInteraction, ButtonStyle, ContainerBuilder, EmbedB
 import { Bot } from '../../bot';
 import { Button } from '../button';
 import { TicketMessages } from '../../modules/tickets/ticketMessages';
+import { QuickStart } from '../../modules/tickets/tickets';
 
 export default class TicketOpen extends Button {
     constructor () {
@@ -11,7 +12,7 @@ export default class TicketOpen extends Button {
     }
 
     async execute(bot: Bot, interaction: ButtonInteraction, userId: string, caseId?: string): Promise<void> {
-        const quickStart = {};
+        const quickStart: QuickStart = {};
         if (caseId) quickStart['caseId'] = parseInt(caseId);
 
         if (await bot.tickets.isUserBlocked(userId)) {
@@ -26,6 +27,8 @@ export default class TicketOpen extends Button {
         }
 
         const ticket = await bot.tickets.getTicketByUser(userId);
+
+        if (!ticket) return void interaction.editReply('Ticket not found');
         
         const container = new ContainerBuilder()
             .addTextDisplayComponents(t => t.setContent(`Ticket #${ticket.ticketId} created successfully! You can start chatting here, and a staff member will be with you shortly.`))

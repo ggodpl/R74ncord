@@ -19,8 +19,7 @@ export class XPModule extends Base {
 
     cooldown(userId: string) {
         if (!this.xpCooldowns.has(userId)) return false;
-
-        const cooldown = this.xpCooldowns.get(userId);
+        const cooldown = this.xpCooldowns.get(userId)!;
 
         if (cooldown < Date.now()) {
             this.xpCooldowns.delete(userId);
@@ -29,7 +28,7 @@ export class XPModule extends Base {
 
         // if the user is gaining too often, extend cooldown
         if (Date.now() - cooldown < COOLDOWN_SPAM_THRESHOLD) {
-            this.xpCooldowns.set(userId, this.xpCooldowns.get(userId) + COOLDOWN_EXTENSION);
+            this.xpCooldowns.set(userId, this.xpCooldowns.get(userId)! + COOLDOWN_EXTENSION);
         }
 
         return true;
@@ -82,6 +81,7 @@ export class XPModule extends Base {
         if (!channelId) return;
 
         const guild = this.bot.client.guilds.cache.get(guildId);
+        if (!guild) return;
         const channel = await guild.channels.fetch(channelId);
         if (!channel || channel.type != ChannelType.GuildText) return;
         

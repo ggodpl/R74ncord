@@ -20,7 +20,7 @@ export default class SetTranscriptChannel extends Command {
     async execute(bot: Bot, command: ChatInputCommandInteraction): Promise<void> {
         const channel = command.options.getChannel('channel', true);
 
-        await bot.settings.setTranscriptChannel(command.guildId, channel.id);
+        await bot.settings.setTranscriptChannel(command.guildId!, channel.id);
 
         command.editReply(`Transcript channel successfully set to ${channel}`);
     }

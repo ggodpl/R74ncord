@@ -48,11 +48,11 @@ export class CommandHandler extends Handler<Command> {
 
     async handleInteraction(interaction: ChatInputCommandInteraction) {
         try {
-            const command = this.registry.get(interaction.commandName) ?? this.registry.get(this.aliases.get(interaction.commandName));
+            const command = this.registry.get(interaction.commandName) ?? (this.aliases.has(interaction.commandName) ? this.registry.get(this.aliases.get(interaction.commandName)!) : undefined);
             if (!command) {
                 const error = new EmbedBuilder()
                     .setTitle('Unknown command')
-                    .setDescription('The command you used does not exist. If you see this error, your Discord client is probably desynchornized. Refresh your Discord client and try again later.')
+                    .setDescription('The command you used does not exist. If you see this error, your Discord client is probably desynchronized. Refresh your Discord client and try again later.')
                     .setColor(Colors.Red)
                     .setFooter(getFooter(interaction.user.displayAvatarURL()));
 
@@ -89,6 +89,8 @@ export class CommandHandler extends Handler<Command> {
     onModal(interaction: ModalSubmitInteraction, id: string) {
         const commandName = id.replace('-modal', '');
         const command = this.registry.get(commandName);
+
+        console.log(command, commandName, id);
 
         if (!command) return;
         if (!command.isModal()) return;

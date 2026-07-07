@@ -19,7 +19,7 @@ export default class UnlockChannel extends Command {
     }
 
     async execute(bot: Bot, command: ChatInputCommandInteraction) {
-        const channel = command.options.getChannel("channel");
+        const channel = command.options.getChannel("channel", true);
 
         await BlockedChannels.findOneAndDelete({
             guildId: command.guildId,

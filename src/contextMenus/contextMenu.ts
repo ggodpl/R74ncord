@@ -28,7 +28,7 @@ export abstract class ContextMenu<T extends ContextMenuCommandType> {
     }
 
     isModal(): this is ModalContextMenu {
-        return this.data.isModal;
+        return this.data.isModal ?? false;
     }
 
     toJSON() {

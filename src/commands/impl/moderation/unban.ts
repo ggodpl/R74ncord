@@ -36,13 +36,13 @@ export default class Unban extends Command {
         };
 
 
-        await command.guild.bans.remove(user.id, reason ?? 'No reason provided');
+        await command.guild!.bans.remove(user.id, reason ?? 'No reason provided');
 
-        const savedCase = await bot.moderation.registerInfraction(command.guildId, user.id, infraction);
+        const savedCase = await bot.moderation.registerInfraction(command.guildId!, user.id, infraction);
 
         const dm = new EmbedBuilder()
             .setTitle('Ban removed')
-            .setDescription(`You have been unbanned in **${command.guild.name}**`)
+            .setDescription(`You have been unbanned in **${command.guild!.name}**`)
             .setColor(Colors.Green);
         
         try {
@@ -53,7 +53,7 @@ export default class Unban extends Command {
 
         const embed = new EmbedBuilder()
             .setTitle('Infraction')
-            .setDescription(`\`${savedCase.caseId}\` | Unbanned user ${user} for \`${reason ?? 'No reason provided'}\``)
+            .setDescription(`\`${savedCase!.caseId}\` | Unbanned user ${user} for \`${reason ?? 'No reason provided'}\``)
             .setColor(Colors.Green)
             .setFooter(getFooter(command.user.displayAvatarURL()));
 

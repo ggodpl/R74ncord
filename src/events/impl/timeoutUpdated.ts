@@ -50,14 +50,14 @@ export default class TimeoutUpdated extends Event<'guildMemberUpdate'> {
             const action = rule.actions.find(a => a.type == AutoModerationActionType.Timeout);
             if (!action) return;
 
-            if (action.metadata.durationSeconds <= 3600) return;
+            if ((action.metadata.durationSeconds ?? 0) <= 3600) return;
         }
 
         const infractionData: Infraction = {
             type: isTimedOut ? 'timeout' : 'untimeout',
-            moderator: isAutomod ? undefined : entry.executorId,
-            reason: entry.reason,
-            duration: isTimedOut ? newMember.communicationDisabledUntilTimestamp - Date.now() : undefined,
+            moderator: isAutomod ? undefined : entry.executorId ?? undefined,
+            reason: entry.reason ?? 'No reason provided',
+            duration: isTimedOut ? newMember.communicationDisabledUntilTimestamp! - Date.now() : undefined,
             isAutomod,
         }
 
@@ -67,7 +67,7 @@ export default class TimeoutUpdated extends Event<'guildMemberUpdate'> {
 
         if (isTimedOut) {
             const dm = new ContainerBuilder()
-                .addTextDisplayComponents(t => t.setContent(`You have been timed out for \`${entry.reason ?? 'No reason provided'}\` in **${newMember.guild.name}**. Your timeout expires ${getRelativeTimestamp(infractionData.duration)}`))
+                .addTextDisplayComponents(t => t.setContent(`You have been timed out for \`${entry.reason ?? 'No reason provided'}\` in **${newMember.guild.name}**. Your timeout expires ${getRelativeTimestamp(infractionData.duration ?? 0)}`))
                 .addSeparatorComponents(s => s)
                 .addTextDisplayComponents(t => t.setContent('If you believe this is a mistake, you can press the button below to start a new ticket.'))
                 .addActionRowComponents(r => r.setComponents(

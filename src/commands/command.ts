@@ -55,7 +55,7 @@ export abstract class Command {
     }
 
     isModal(): this is ModalCommand {
-        return this.data.isModal;
+        return this.data.isModal ?? false;
     }
 
     setCategory(category: string) {

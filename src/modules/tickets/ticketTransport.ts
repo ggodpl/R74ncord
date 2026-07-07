@@ -2,8 +2,6 @@ import { Attachment, ForumChannel, ForumThreadChannel, Message, MessageCreateOpt
 import { Base } from '../../base';
 import { Logger } from '../../logger';
 export class TicketTransport extends Base {
-    private hooks: Map<string, Webhook> = new Map();
-
     async sendMessageUser(userId: string, message: MessagePayload | MessageCreateOptions | string) {
         const user = await this.bot.client.users.fetch(userId);
 
@@ -22,24 +20,9 @@ export class TicketTransport extends Base {
         return false;
     }
 
-    private async getChannelWebhook(channel: ForumChannel) {
-        if (this.hooks.has(channel.id)) return this.hooks.get(channel.id);
-        
-        const webhooks = await channel.fetchWebhooks();
-
-        const webhook = webhooks.find(w => w.owner.id == this.bot.client.user.id && w.name == 'ticket-relay')
-            ?? (await channel.createWebhook({
-                name: 'ticket-relay',
-                reason: 'Relay user ticket messages into ticket threads',
-            }));
-        
-        this.hooks.set(channel.id, webhook);
-        
-        return webhook;
-    }
-
     async sendMessageTicket(thread: ForumThreadChannel, user: User, message: Message) {
-        const webhook = await this.getChannelWebhook(thread.parent as ForumChannel);
+        const webhook = await this.bot.webhooks.getChannelWebhook(thread.parent as ForumChannel, 'ticket-relay');
+        if (!webhook) return;
 
         try {
             await webhook.send({

@@ -21,6 +21,7 @@ export default class StartTicket extends ContextMenu<ApplicationCommandType.User
         }
 
         const ticket = await bot.tickets.getTicketByUser(interaction.targetUser.id);
+        if (!ticket) return void interaction.editReply('Something went wrong. Please, try again later');
 
         interaction.editReply(`Successfully opened a ticket: <#${ticket.channelId}>`);
     }

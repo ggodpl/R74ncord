@@ -42,18 +42,18 @@ export default class Leaderboard extends Command {
             });
         }
 
-        const users = await bot.levels.getUsers(command.guildId, page, perPage);
+        const users = await bot.levels.getUsers(command.guildId!, page, perPage);
 
         let description = this.displayUsers(users, command.user.id, page, perPage);
 
         if (!users.some(u => u.userId == command.user.id)) {
-            const userXP = await bot.levels.getUser(command.user.id, command.guildId);
+            const userXP = await bot.levels.getUser(command.user.id, command.guildId!);
 
             description = `**#${userXP.rank} <@${command.user.id}> XP: \`${userXP.xp}\`**\n` + description;
         }
 
         const embed = new EmbedBuilder()
-            .setTitle(`${command.guild.name} text leaderboard`)
+            .setTitle(`${command.guild!.name} text leaderboard`)
             .setDescription(description)
             .setColor("#00ffff")
             .setFooter({

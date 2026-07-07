@@ -15,5 +15,9 @@ export default class MessageHandler extends Event<'messageCreate'> {
         if (message.guildId) bot.xp.gain(message.author.id, message.guildId, message.channelId);
         
         bot.tickets.onMessage(message);
+        if (message.inGuild()) {
+            bot.scamDetection.onMessage(message);
+            bot.freePing.onMessage(message);
+        }
     }
 }

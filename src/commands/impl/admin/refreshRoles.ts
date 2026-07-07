@@ -22,7 +22,11 @@ export default class RefreshRoles extends Command {
         const user = command.options.getUser("user", true);
         const res = await LevelSchema.findOne({ userId: user.id, guildId: command.guildId });
     
-        bot.levelRoles.levelUp(user.id, command.guildId, res.level);
+        if (!res) return void command.editReply({
+            content: 'User not found'
+        });
+
+        bot.levelRoles.levelUp(user.id, command.guildId!, res.level);
 
         command.editReply({
             content: `Successfully refreshed level roles for ${user}`,

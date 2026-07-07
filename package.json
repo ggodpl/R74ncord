@@ -1,10 +1,9 @@
 {
   "name": "r74n-bot",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Bot for the R74n Discord server",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
     "start": "node out/index.js"
   },

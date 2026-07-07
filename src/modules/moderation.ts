@@ -6,7 +6,7 @@ import ms from 'ms';
 
 export interface Infraction {
     type: 'warn' | 'timeout' | 'kick' | 'softban' | 'ban' | 'untimeout' | 'unban';
-    reason?: string;
+    reason?: string | null;
     moderator?: string;
     duration?: number;
     isAutomod?: boolean;

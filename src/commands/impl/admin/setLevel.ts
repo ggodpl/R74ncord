@@ -34,7 +34,11 @@ export default class SetLevel extends Command {
             upsert: true
         });
 
-        bot.levelRoles.levelUp(user.id, command.guildId, level);
+        if (!res) return void command.editReply({
+            content: 'User not found'
+        });
+
+        bot.levelRoles.levelUp(user.id, command.guildId!, level);
 
         command.editReply({
             content: `Successfully set user level from ${res.level} to ${level}`,

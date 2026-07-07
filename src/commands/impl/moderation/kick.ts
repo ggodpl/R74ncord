@@ -26,7 +26,7 @@ export default class Kick extends Command {
 
     async execute(bot: Bot, command: ChatInputCommandInteraction): Promise<void> {
         const user = command.options.getUser('user', true);
-        const reason = command.options.getString('reason', false);
+        const reason = command.options.getString('reason', false) ?? undefined;
 
         const infraction: Infraction = {
             type: 'kick',
@@ -34,13 +34,13 @@ export default class Kick extends Command {
             moderator: command.user.id,
         };
 
-        const member = await command.guild.members.fetch({
+        const member = await command.guild!!.members.fetch({
             user: user.id
         });
 
         const dm = new EmbedBuilder()
             .setTitle('Kick')
-            .setDescription(`You have been kicked for \`${reason ?? 'No reason provided'}\` from **${command.guild.name}**`)
+            .setDescription(`You have been kicked for \`${reason ?? 'No reason provided'}\` from **${command.guild!.name}**`)
             .setColor(Colors.Red);
         
         try {
@@ -51,11 +51,11 @@ export default class Kick extends Command {
 
         await member.kick(reason ?? 'No reason provided');
 
-        const savedCase = await bot.moderation.registerInfraction(command.guildId, user.id, infraction);
+        const savedCase = await bot.moderation.registerInfraction(command.guildId!, user.id, infraction);
 
         const embed = new EmbedBuilder()
             .setTitle('Infraction')
-            .setDescription(`\`${savedCase.caseId}\` | Kicked ${user} for \`${reason ?? 'No reason provided'}\``)
+            .setDescription(`\`${savedCase!.caseId}\` | Kicked ${user} for \`${reason ?? 'No reason provided'}\``)
             .setColor(Colors.Red)
             .setFooter(getFooter(command.user.displayAvatarURL()));
 

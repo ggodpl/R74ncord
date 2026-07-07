@@ -31,21 +31,21 @@ export default class Untimeout extends Command {
 
         const infraction: Infraction = {
             type: 'untimeout',
-            reason,
+            reason: reason ?? undefined,
             moderator: command.user.id,
         };
 
-        const member = await command.guild.members.fetch({
+        const member = await command.guild!.members.fetch({
             user: user.id
         });
 
         await member.disableCommunicationUntil(null, reason ?? 'No reason provided');
 
-        const savedCase = await bot.moderation.registerInfraction(command.guildId, user.id, infraction);
+        const savedCase = await bot.moderation.registerInfraction(command.guildId!, user.id, infraction);
 
         const dm = new EmbedBuilder()
             .setTitle('Timeout removed')
-            .setDescription(`Your timeout has been removed in **${command.guild.name}**`)
+            .setDescription(`Your timeout has been removed in **${command.guild!.name}**`)
             .setColor(Colors.Green);
         
         try {
@@ -53,6 +53,8 @@ export default class Untimeout extends Command {
                 embeds: [dm],
             });
         } catch {};
+
+        if (!savedCase) return;
 
         const embed = new EmbedBuilder()
             .setTitle('Infraction')

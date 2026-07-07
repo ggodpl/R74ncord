@@ -23,7 +23,7 @@ export default class Case extends Command {
     async execute(bot: Bot, command: ChatInputCommandInteraction): Promise<void> {
         const caseId = command.options.getInteger('case', true);
 
-        const caseData = await bot.moderation.getCase(command.guildId, caseId);
+        const caseData = await bot.moderation.getCase(command.guildId!, caseId);
 
         if (!caseData) {
             const embed = new EmbedBuilder()
@@ -42,7 +42,7 @@ export default class Case extends Command {
         const fields = [
             { name: 'Type', value: `\`${caseData.infractionType}\`` },
             { name: 'Moderator', value: caseData.isAutomod ? '`Automod`' : `<@${caseData.moderator}>` },
-            { name: 'Reason', value: caseData.reason },
+            { name: 'Reason', value: `\`${caseData.reason ?? 'No reason provided'}\`` },
             { name: 'Case ID', value: `${caseData.caseId}` },
         ];
 

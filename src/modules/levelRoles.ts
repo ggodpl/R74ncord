@@ -20,7 +20,10 @@ export class LevelRolesModule extends Base {
     }
 
     async editLevelRole(guildId: string, level: number, roleId?: string, keep?: boolean) {
-        const updateDocument = {};
+        const updateDocument: Record<'role' | 'keep', unknown | undefined> = {
+            role: undefined,
+            keep: undefined,
+        }
 
         if (typeof roleId !== 'undefined') {
             updateDocument['role'] = roleId;
@@ -61,6 +64,7 @@ export class LevelRolesModule extends Base {
         if (!role) return;
 
         const guild = this.bot.client.guilds.cache.get(guildId);
+        if (!guild) return;
         const member = await guild.members.fetch(userId);
 
         const previousRoles = await LevelRoles.find({

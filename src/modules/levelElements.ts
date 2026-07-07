@@ -38,11 +38,14 @@ export class LevelElementsModule extends Base {
     }
 
     static getElementColors(element: string) {
+        // @ts-ignore
         const color = elements[element] ?? elements.sand;
         return Array.isArray(color[0]) ? color : [color];
     }
 
-    static isElement(element: string) {
+    static isElement(element?: string) {
+        if (!element) return false;
+        // @ts-ignore
         return !!elements[element];
     }
 }

@@ -1,3 +1,4 @@
+import { Message } from 'discord.js';
 import { Bot } from "./bot";
 import { Registry } from "./registry";
 
@@ -21,4 +22,8 @@ export class BaseRegistrar<T> {
 
 export interface Initializable<T> {
     initialize: (...args: T[]) => Promise<boolean> | boolean
+}
+
+export interface Messagable<InGuild extends boolean> {
+    onMessage: (message: Message<InGuild>) => Promise<void>,
 }

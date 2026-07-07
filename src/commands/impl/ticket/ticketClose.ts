@@ -35,6 +35,8 @@ export default class TicketClose extends Command {
         } else {
             if (bot.tickets.isTicket(command.channelId)) {
                 const ticket = await bot.tickets.getTicketByChannel(command.channelId);
+                if (!ticket) return void command.editReply('No active ticket found for this channel');
+                
                 const result = await bot.tickets.closeTicket(ticket.userId, command.user.id);
 
                 if (result.success) {

@@ -50,7 +50,7 @@ export class Sandboxels {
     }
 
     pickColor() {
-        const color = randomElement(LevelElementsModule.getElementColors(this.element));
+        const color = randomElement<[number, number, number]>(LevelElementsModule.getElementColors(this.element));
 
         const colorOffset = Math.floor(Math.random() * (Math.random() > 0.5 ? -1 : 1) * Math.random() * 15);
         const r = Math.max(0, Math.min(255, color[0] + colorOffset));

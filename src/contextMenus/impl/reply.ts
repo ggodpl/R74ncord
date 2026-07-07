@@ -57,7 +57,7 @@ export default class Reply extends ContextMenu<ApplicationCommandType.Message> i
         
         const attachments = files ? Array.from(files.values()) : [];
         
-        const { success, reason } = await bot.tickets.reply(interaction.channelId, content, attachments);
+        const { success, reason } = await bot.tickets.reply(interaction.channelId!, content, attachments);
     
         if (!success) {
             interaction.reply(reason);

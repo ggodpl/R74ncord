@@ -22,7 +22,7 @@ export default class Infractions extends Command {
     async execute(bot: Bot, command: ChatInputCommandInteraction): Promise<void> {
         const user = command.options.getUser('user', true);
 
-        const infractions = await bot.moderation.getInfractions(command.guildId, user.id);
+        const infractions = await bot.moderation.getInfractions(command.guildId!, user.id);
 
         if (!infractions.length) {
             const embed = new EmbedBuilder()

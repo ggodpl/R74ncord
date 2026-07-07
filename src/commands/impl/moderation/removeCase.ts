@@ -23,7 +23,7 @@ export default class RemoveCase extends Command {
     async execute(bot: Bot, command: ChatInputCommandInteraction): Promise<void> {
         const caseId = command.options.getInteger('case', true);
 
-        const caseData = await bot.moderation.getCase(command.guildId, caseId);
+        const caseData = await bot.moderation.getCase(command.guildId!, caseId);
 
         if (!caseData) {
             const embed = new EmbedBuilder()
@@ -39,7 +39,7 @@ export default class RemoveCase extends Command {
             return;
         }
 
-        await bot.moderation.removeCase(command.guildId, caseId);
+        await bot.moderation.removeCase(command.guildId!, caseId);
 
         const embed = new EmbedBuilder()
             .setTitle(null)

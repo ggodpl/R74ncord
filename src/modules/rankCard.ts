@@ -83,7 +83,7 @@ export class RankCard {
         ctx.drawImage(front, imageOffsetX, imageOffsetY, frontWidth, frontHeight);
 
         const avatarOffsetX = 41;
-        const avatarOffsetY = 73;
+        const avatarOffsetY = 72;
         const avatarSize = 85;
         
         const avatar = await loadImage(await this.generateAvatarContext(avatarURL));

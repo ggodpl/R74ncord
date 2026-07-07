@@ -24,17 +24,17 @@ export default class AddElement extends Command {
     }
 
     async execute(bot: Bot, command: ChatInputCommandInteraction) {
-        const level = command.options.getInteger("level");
-        const element = command.options.getString("element");
+        const level = command.options.getInteger("level", true);
+        const element = command.options.getString("element", true);
 
-        if (!LevelElementsModule.isElement(element)) {
+        if (!LevelElementsModule.isElement(element ?? undefined)) {
             command.editReply({
                 content: `${element} is not a valid element`
             });
             return;
         }
 
-        bot.levelElements.addLevelElement(command.guildId, level, element);
+        bot.levelElements.addLevelElement(command.guildId!, level, element);
 
         command.editReply({
             content: `Successfully added an element for level ${level}`

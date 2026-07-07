@@ -35,15 +35,15 @@ export default class Warn extends Command {
             moderator: command.user.id,
         };
 
-        const savedCase = await bot.moderation.registerInfraction(command.guildId, user.id, infraction);
+        const savedCase = await bot.moderation.registerInfraction(command.guildId!, user.id, infraction);
 
         const dm = new ContainerBuilder()
             .setAccentColor(Colors.Yellow)
-            .addTextDisplayComponents(t => t.setContent(`You have been warned for \`${reason ?? 'No reason provided'}\` in **${command.guild.name}**`))
+            .addTextDisplayComponents(t => t.setContent(`You have been warned for \`${reason ?? 'No reason provided'}\` in **${command.guild!.name}**`))
             .addSeparatorComponents(s => s)
             .addTextDisplayComponents(t => t.setContent('If you believe this is a mistake, you can press the button below to start a new ticket.'))
             .addActionRowComponents(r => r.setComponents(
-                new ButtonBuilder().setStyle(ButtonStyle.Danger).setLabel('Appeal').setCustomId(`ticket-open_${user.id}_${savedCase.caseId}`)
+                new ButtonBuilder().setStyle(ButtonStyle.Danger).setLabel('Appeal').setCustomId(`ticket-open_${user.id}_${savedCase!.caseId}`)
             ));
         
         try {
@@ -55,7 +55,7 @@ export default class Warn extends Command {
 
         const embed = new EmbedBuilder()
             .setTitle('Infraction')
-            .setDescription(`\`${savedCase.caseId}\` | Warned ${user} for \`${reason ?? 'No reason provided'}\``)
+            .setDescription(`\`${savedCase!.caseId}\` | Warned ${user} for \`${reason ?? 'No reason provided'}\``)
             .setColor(Colors.Yellow)
             .setFooter(getFooter(command.user.displayAvatarURL()));
 

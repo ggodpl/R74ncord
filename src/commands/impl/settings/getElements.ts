@@ -17,10 +17,10 @@ export default class LevelElements extends Command {
     }
 
     async execute(bot: Bot, command: ChatInputCommandInteraction) {
-        const levelElements = await bot.levelElements.getLevelElements(command.guildId);        
+        const levelElements = await bot.levelElements.getLevelElements(command.guildId!);        
         
         const embed = new EmbedBuilder()
-            .setTitle(`${command.guild.name} level elements`)
+            .setTitle(`${command.guild!.name} level elements`)
             .setDescription(this.displayLevelColors(levelElements))
             .setColor("#00ffff")
             .setFooter({

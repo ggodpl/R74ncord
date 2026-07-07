@@ -20,7 +20,7 @@ export default class setTicketCategory extends Command {
     async execute(bot: Bot, command: ChatInputCommandInteraction): Promise<void> {
         const message = command.options.getString('message', true);
 
-        await bot.settings.setTicketStarterMessage(command.guildId, message);
+        await bot.settings.setTicketStarterMessage(command.guildId!, message);
 
         command.editReply(`Ticket starter message successfully set to \`${message}\``);
     }

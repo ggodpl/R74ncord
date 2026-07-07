@@ -19,9 +19,9 @@ export default class RemoveRole extends Command {
     }
 
     async execute(bot: Bot, command: ChatInputCommandInteraction) {
-        const level = command.options.getInteger("level");
+        const level = command.options.getInteger("level", true);
 
-        bot.levelRoles.removeLevelRole(command.guildId, level);
+        bot.levelRoles.removeLevelRole(command.guildId!, level);
 
         command.editReply({
             content: `Successfully removed role for level ${level}`

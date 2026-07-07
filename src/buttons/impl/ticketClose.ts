@@ -11,14 +11,12 @@ export default class TicketClose extends Button {
     }
 
     async execute(bot: Bot, interaction: ButtonInteraction, userId: string): Promise<void> {
-        const { success, reason } = await bot.tickets.closeTicket(userId, interaction.user.id);
-
         const ticket = await bot.tickets.getTicketByUser(userId);
 
-        if (!success) {
-            interaction.editReply(`Ticket did not close successfully. ${reason}`);
-            return;
-        }
+        const { success, reason } = await bot.tickets.closeTicket(userId, interaction.user.id);
+
+        if (!success) return void interaction.editReply(`Ticket did not close successfully. ${reason}`);
+        if (!ticket) return void interaction.editReply('Ticket not found');
 
         if (userId != interaction.user.id) {
             interaction.editReply(TicketMessages.closedByAdminMessage(ticket) as InteractionEditReplyOptions);

@@ -34,7 +34,7 @@ export default class SetXP extends Command {
             upsert: true
         });
 
-        bot.levelRoles.levelUp(user.id, command.guildId, LevelsModule.getLevel(xp));
+        bot.levelRoles.levelUp(user.id, command.guildId!, LevelsModule.getLevel(xp));
 
         command.editReply({
             content: `Successfully set user XP from ${res?.xp ?? 0} to ${xp}`,

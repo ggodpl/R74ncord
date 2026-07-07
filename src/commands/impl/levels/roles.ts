@@ -16,12 +16,12 @@ export default class GetLevelRoles extends Command {
     }
 
     async execute(bot: Bot, command: ChatInputCommandInteraction) {
-        const roles = await bot.levelRoles.getLevelRoles(command.guildId);
+        const roles = await bot.levelRoles.getLevelRoles(command.guildId!);
 
-        const isMod = command.memberPermissions.has(PermissionFlagsBits.BanMembers);
+        const isMod = command.memberPermissions!.has(PermissionFlagsBits.BanMembers);
         
         const embed = new EmbedBuilder()
-            .setTitle(`${command.guild.name} level elements`)
+            .setTitle(`${command.guild!.name} level elements`)
             .setDescription(this.displayRoles(roles, isMod))
             .setColor("#00ffff")
             .setFooter({

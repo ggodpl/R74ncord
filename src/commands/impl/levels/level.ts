@@ -22,11 +22,14 @@ export default class TestCommand extends Command {
     async execute(bot: Bot, command: ChatInputCommandInteraction) {
         const user = command.options.getUser("user") ?? command.user;
 
-        const { xp, level, rank } = await bot.levels.getUser(user.id, command.guildId);
+        const { xp, level, rank } = await bot.levels.getUser(user.id, command.guildId!);
         
         const max = LevelsModule.getLevelXP(level);
 
-        const element = await bot.levelElements.getLevelElement(command.guildId, level);
+        const element = await bot.levelElements.getLevelElement(command.guildId!, level);
+        if (!element) return command.editReply({
+            content: 'You stumbled upon an incredibly rare error message, you should probably report it to someone.'
+        });
 
         const buffer = await RankCard.generateRankCard(user.displayAvatarURL({ extension: "png" }), user.username, element, {
             xp: LevelsModule.getRelativeXP(xp, level),

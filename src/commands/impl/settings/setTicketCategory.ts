@@ -25,7 +25,7 @@ export default class setTicketChannel extends Command {
             return;
         }
 
-        await bot.settings.setTicketForum(command.guildId, channel.id);
+        await bot.settings.setTicketForum(command.guildId!, channel.id);
 
         command.editReply(`Ticket channel successfully set to ${channel}`);
     }

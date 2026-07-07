@@ -16,6 +16,9 @@ import { TicketsModule } from "./modules/tickets/tickets";
 import { ButtonHandler } from "./handlers/buttonHandler";
 import { ContextMenuHandler } from "./handlers/contextMenuHandler";
 import { CommandJointDeployer } from "./modules/commandJointDeployer";
+import { ScamDetection } from './modules/scamDetection';
+import { WebhookManager } from './modules/webhookManager';
+import { FreePing } from './modules/freePing';
 
 export class Bot {
     client: Client;
@@ -38,17 +41,15 @@ export class Bot {
     scheduler: Scheduler;
     tickets: TicketsModule;
     jointDeployer: CommandJointDeployer;
+    scamDetection: ScamDetection;
+    webhooks: WebhookManager;
+    freePing: FreePing;
 
     constructor (options?: ClientOptions) {
         this.client = new Client({ intents: ['Guilds', 'GuildMessages', 'MessageContent', 'DirectMessages', 'GuildBans', 'GuildModeration', 'GuildMembers'], partials: [Partials.Channel], ...options });
 
         this.clientId = process.env.CLIENT_ID ?? "";
         this.clientSecret = process.env.CLIENT_SECRET ?? "";
-
-        this.commands = undefined;
-        this.events = undefined;
-        this.buttons = undefined;
-        this.contextMenus = undefined;
 
         this.db = new MongoDB(this);
         this.levels = new LevelsModule(this);
@@ -60,6 +61,9 @@ export class Bot {
         this.scheduler = new Scheduler(this);
         this.tickets = new TicketsModule(this);
         this.jointDeployer = new CommandJointDeployer(this);
+        this.scamDetection = new ScamDetection(this);
+        this.webhooks = new WebhookManager(this);
+        this.freePing = new FreePing(this);
     }
 
     addEventHandle(event: string, listener: Event<any>) {
@@ -106,7 +110,7 @@ export class Bot {
         await this.buttons.initialize();
         await this.contextMenus.initialize();
 
-        await this.db.initialize(process.env.MONGODB_URI);
+        await this.db.initialize(process.env.MONGODB_URI!);
 
         RankCard.initialize();
         this.tickets.initialize();

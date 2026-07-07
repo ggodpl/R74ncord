@@ -20,7 +20,7 @@ export default class SetModLogChannel extends Command {
     async execute(bot: Bot, command: ChatInputCommandInteraction): Promise<void> {
         const channel = command.options.getChannel('channel', true);
 
-        await bot.settings.setModLogChannel(command.guildId, channel.id);
+        await bot.settings.setModLogChannel(command.guildId!, channel.id);
 
         command.editReply(`Modlog channel successfully set to ${channel}`);
     }

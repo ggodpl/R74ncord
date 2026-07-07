@@ -4,12 +4,10 @@ import { Bot } from "../bot";
 import { Logger } from "../logger";
 
 export class MongoDB extends Base implements Initializable<string> {
-    mongoose: Mongoose;
+    mongoose!: Mongoose | undefined;
 
     constructor (bot: Bot) {
         super(bot);
-
-        this.mongoose = undefined;
     }
     
     async initialize(uri: string) {

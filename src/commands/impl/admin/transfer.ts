@@ -2,6 +2,7 @@ import { ChatInputCommandInteraction, SlashCommandUserOption, SlashCommandBoolea
 import { Bot } from "../../../bot";
 import { Command, CommandPermissionLevel } from "../../command";
 import LevelSchema from "../../../mongodb/models/LevelSchema";
+import { LevelsModule } from '../../../modules/levels';
 
 export default class Transfer extends Command {
     constructor () {
@@ -32,9 +33,14 @@ export default class Transfer extends Command {
         const clear = command.options.getBoolean("clear-xp") ?? false;
         
         const res = await LevelSchema.findOneAndUpdate({ userId: from.id, guildId: command.guildId }, clear ? { xp: 0 } : {});
+        
+        if (!res) return void command.editReply({
+            content: 'User not found'
+        });
 
         await LevelSchema.findOneAndUpdate({ userId: to.id, guildId: command.guildId }, {
-            xp: res.xp
+            xp: res.xp,
+            level: LevelsModule.getLevel(res.xp)
         }, {
             upsert: true
         });

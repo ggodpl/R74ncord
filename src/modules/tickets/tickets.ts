@@ -1,4 +1,4 @@
-import { Base, Initializable } from '../../base';
+import { Base, Initializable, Messagable } from '../../base';
 import Tickets from '../../mongodb/models/Tickets';
 import { TicketMessages } from './ticketMessages';
 import { TicketRepository } from './ticketRepository';
@@ -16,7 +16,7 @@ export interface QuickStart {
 
 const GUILD_ID = process.env['BASE_TICKET_GUILD']!;
 
-export class TicketsModule extends Base implements Initializable<never> {
+export class TicketsModule extends Base implements Initializable<never>, Messagable<true> {
     private ticketChannels: Set<string> = new Set();
     private TRANSCRIPTS_DIR: string = path.join(process.cwd(), 'data', 'transcripts');
     
@@ -28,8 +28,11 @@ export class TicketsModule extends Base implements Initializable<never> {
         this.transport = new TicketTransport(bot);
     }
 
-    async getTicketThread(channelId: string): Promise<{ success: false, reason: string } | { success: true, reason: string, guild: Guild, channel: ForumChannel, thread: ForumThreadChannel }> {
+    async getTicketThread(channelId?: string): Promise<{ success: false, reason: string } | { success: true, reason: string, guild: Guild, channel: ForumChannel, thread: ForumThreadChannel }> {
+        if (!channelId) return this.fail('NO_THREAD');
+        
         const settings = await this.bot.settings.getGuildSettings(GUILD_ID);
+        if (!settings) return this.fail('NOT_READY');
 
         const forum = settings.ticketForum;
         if (!forum) return this.fail('NOT_READY');
@@ -62,7 +65,8 @@ export class TicketsModule extends Base implements Initializable<never> {
         if (activeTicket) return this.fail('ALREADY_OPEN');
 
         const settings = await this.bot.settings.getGuildSettings(GUILD_ID);
-        
+        if (!settings) return this.fail('NOT_READY');
+
         const ticketForum = settings.ticketForum;
         if (!ticketForum) return this.fail('NOT_READY');
 
@@ -99,7 +103,7 @@ export class TicketsModule extends Base implements Initializable<never> {
 
         if (embeds.length) thread.send({ embeds });
 
-        await TicketRepository.addChannelId(GUILD_ID, ticket.ticketId, thread.id);
+        await TicketRepository.addChannelId(GUILD_ID, ticket!.ticketId!, thread.id);
 
         this.ticketChannels.add(thread.id);
 
@@ -122,14 +126,14 @@ export class TicketsModule extends Base implements Initializable<never> {
         const ticket = await TicketRepository.getTicketUser(GUILD_ID, userId);
         if (!ticket) return this.fail('NO_TICKET');
 
-        const res = await this.getTicketThread(ticket.channelId);
+        const res = await this.getTicketThread(ticket.channelId!);
         if (!res.success) return res;
 
         const { thread } = res;
 
         if (ticket.status != 'open') return this.fail('ALREADY_CLOSED');
 
-        await TicketRepository.closeTicket(GUILD_ID, ticket.ticketId, closedBy);
+        await TicketRepository.closeTicket(GUILD_ID, ticket.ticketId!, closedBy);
 
         if (userId != closedBy) {
             this.transport.sendMessageUser(userId, TicketMessages.closedByAdminMessageDM());
@@ -146,7 +150,7 @@ export class TicketsModule extends Base implements Initializable<never> {
 
         const settings = await this.bot.settings.getGuildSettings(GUILD_ID);
 
-        const res = await this.getTicketThread(ticket.channelId);
+        const res = await this.getTicketThread(ticket.channelId!);
         if (!res.success) return res;
 
         const { guild, thread } = res;
@@ -154,7 +158,7 @@ export class TicketsModule extends Base implements Initializable<never> {
         const transcript = await this.generateTicketTranscript(thread);
         const transcriptName = `ticket-${ticket.userId}-${ticket.ticketId}.html`;
 
-        if (settings.transcriptChannel) {
+        if (settings && settings.transcriptChannel) {
             const transcriptChannel = await guild.channels.fetch(settings.transcriptChannel) as TextChannel;
             if (transcriptChannel) {
                 transcriptChannel.send(TicketMessages.transcriptMessage(ticket, transcript, transcriptName))
@@ -181,7 +185,7 @@ export class TicketsModule extends Base implements Initializable<never> {
 
         await thread.setArchived(true, 'Ticket closed');
 
-        this.ticketChannels.delete(ticket.channelId);
+        this.ticketChannels.delete(ticket.channelId!);
 
         return this.success();
     }
@@ -192,7 +196,7 @@ export class TicketsModule extends Base implements Initializable<never> {
 
         if (ticket.status != 'closed') return this.fail(ticket.status == 'open' ? 'STILL_OPEN' : 'ARCHIVED');
 
-        const res = await this.getTicketThread(ticket.channelId);
+        const res = await this.getTicketThread(ticket.channelId!);
         if (!res.success) return res;
         const { thread } = res;
 
@@ -200,7 +204,7 @@ export class TicketsModule extends Base implements Initializable<never> {
         const adminReopened = ticket.userId != reopenedBy;
 
         if ((adminClosed && adminReopened) || (!adminClosed && !adminReopened) || force) {
-            await TicketRepository.reopenTicket(GUILD_ID, ticket.ticketId);
+            await TicketRepository.reopenTicket(GUILD_ID, ticket.ticketId!);
 
             thread.setArchived(false, 'Ticket re-opened');
 
@@ -235,7 +239,7 @@ export class TicketsModule extends Base implements Initializable<never> {
                     message.reply(TicketMessages.ticketClosed(ticket))
                 }
             } else {
-                const res = await this.getTicketThread(ticket.channelId);
+                const res = await this.getTicketThread(ticket.channelId ?? undefined);
                 if (!res.success) return;
 
                 this.transport.sendMessageTicket(res.thread, message.author, message);
@@ -306,7 +310,7 @@ export class TicketsModule extends Base implements Initializable<never> {
             guildId: GUILD_ID,
         }).lean();
 
-        tickets.forEach(t => this.ticketChannels.add(t.channelId));
+        tickets.filter(t => t.channelId).forEach(t => this.ticketChannels.add(t.channelId!));
 
         return true;
     }

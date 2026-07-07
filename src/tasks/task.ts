@@ -1,6 +1,6 @@
 import { Bot } from '../bot';
 
-export abstract class Task<T extends Record<string, any>> {
+export abstract class Task<T extends Record<string, unknown>> {
     static readonly TASK_ID: string;
 
     context: T;

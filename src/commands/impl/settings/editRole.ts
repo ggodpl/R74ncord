@@ -27,11 +27,11 @@ export default class EditRole extends Command {
     }
 
     async execute(bot: Bot, command: ChatInputCommandInteraction) {
-        const level = command.options.getInteger("level");
-        const role = command.options.getRole("role");
-        const keep = command.options.getBoolean("keep");
+        const level = command.options.getInteger("level", true);
+        const role = command.options.getRole("role", true);
+        const keep = command.options.getBoolean("keep", true);
 
-        bot.levelRoles.editLevelRole(command.guildId, level, role?.id, keep);
+        bot.levelRoles.editLevelRole(command.guildId!, level, role?.id, keep);
 
         command.editReply({
             content: `Edited role for level ${level}`

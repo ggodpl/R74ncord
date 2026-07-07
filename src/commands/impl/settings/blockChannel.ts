@@ -19,7 +19,7 @@ export default class BlockChannel extends Command {
     }
 
     async execute(bot: Bot, command: ChatInputCommandInteraction) {
-        const channel = command.options.getChannel("channel");
+        const channel = command.options.getChannel("channel", true);
 
         await BlockedChannels.findOneAndUpdate({
             guildId: command.guildId,

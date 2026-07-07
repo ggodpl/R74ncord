@@ -48,20 +48,20 @@ export default class Timeout extends Command {
             duration: durationMs,
         };
 
-        const member = await command.guild.members.fetch({
+        const member = await command.guild!.members.fetch({
             user: user.id
         });
 
         await member.timeout(durationMs, reason ?? 'No reason provided');
 
-        const savedCase = await bot.moderation.registerInfraction(command.guildId, user.id, infraction);
+        const savedCase = await bot.moderation.registerInfraction(command.guildId!, user.id, infraction);
 
         const dm = new ContainerBuilder()
-            .addTextDisplayComponents(t => t.setContent(`You have been timed out for \`${reason ?? 'No reason provided'}\` in **${command.guild.name}**. Your timeout expires ${getRelativeTimestamp(durationMs)}`))
+            .addTextDisplayComponents(t => t.setContent(`You have been timed out for \`${reason ?? 'No reason provided'}\` in **${command.guild!.name}**. Your timeout expires ${getRelativeTimestamp(durationMs)}`))
             .addSeparatorComponents(s => s)
             .addTextDisplayComponents(t => t.setContent('If you believe this is a mistake, you can press the button below to start a new ticket.'))
             .addActionRowComponents(r => r.setComponents(
-                new ButtonBuilder().setStyle(ButtonStyle.Danger).setLabel('Appeal').setCustomId(`ticket-open_${user.id}_${savedCase.caseId}`)
+                new ButtonBuilder().setStyle(ButtonStyle.Danger).setLabel('Appeal').setCustomId(`ticket-open_${user.id}_${savedCase!.caseId}`)
             ));
 
         try {
@@ -73,7 +73,7 @@ export default class Timeout extends Command {
 
         const embed = new EmbedBuilder()
             .setTitle('Infraction')
-            .setDescription(`\`${savedCase.caseId}\` | Timed ${user} out for \`${reason ?? 'No reason provided'}\` | Expires ${getRelativeTimestamp(durationMs)}`)
+            .setDescription(`\`${savedCase!.caseId}\` | Timed ${user} out for \`${reason ?? 'No reason provided'}\` | Expires ${getRelativeTimestamp(durationMs)}`)
             .setColor(Colors.Orange)
             .setFooter(getFooter(command.user.displayAvatarURL()));
 

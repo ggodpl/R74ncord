@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChatInputCommandInteraction, Colors, ContainerBuilder, EmbedBuilder, SlashCommandStringOption, SlashCommandUserOption, TextInputBuilder } from 'discord.js';
+import { ActionRowBuilder, BanOptions, ButtonBuilder, ButtonStyle, ChatInputCommandInteraction, Colors, ContainerBuilder, EmbedBuilder, SlashCommandStringOption, SlashCommandUserOption, TextInputBuilder } from 'discord.js';
 import { Command, CommandPermissionLevel } from '../../command';
 import { Bot } from '../../../bot';
 import { Infraction } from '../../../modules/moderation';
@@ -38,7 +38,7 @@ export default class Ban extends Command {
     async execute(bot: Bot, command: ChatInputCommandInteraction): Promise<void> {
         const user = command.options.getUser('user', true);
         const duration = command.options.getString('duration', false);
-        const reason = command.options.getString('reason', false);
+        const reason = command.options.getString('reason', false) ?? undefined;
         const purgeMessages = command.options.getString('purge-messages', false);
 
         const infraction: Infraction = {
@@ -48,9 +48,9 @@ export default class Ban extends Command {
         };
         let isTemp = false;
 
-        const banOptions = {
+        const banOptions: BanOptions = {
             reason: reason ?? 'No reason provided'
-        };
+        }
 
         if (purgeMessages && !['0', 'none'].includes(purgeMessages.toLowerCase())) {
             const purgeMs = ms(purgeMessages as StringValue);
@@ -81,23 +81,23 @@ export default class Ban extends Command {
 
             bot.scheduler.schedule(new UnbanTask({
                 userId: user.id,
-                guildId: command.guildId
+                guildId: command.guildId!
             }), durationMs);
 
             infraction.duration = durationMs;
             isTemp = true;
         }
 
-        const savedCase = await bot.moderation.registerInfraction(command.guildId, user.id, infraction);
+        const savedCase = await bot.moderation.registerInfraction(command.guildId!, user.id, infraction);
 
         const dm = new EmbedBuilder()
             .setTitle('Ban')
-            .setDescription(`You have been banned for \`${reason ?? 'No reason provided'}\` from **${command.guild.name}**${isTemp ? `| Expires ${getRelativeTimestamp(durationMs)}` : ''}`)
+            .setDescription(`You have been banned for \`${reason ?? 'No reason provided'}\` from **${command.guild!.name}**${isTemp ? `| Expires ${getRelativeTimestamp(durationMs ?? 0)}` : ''}`)
             .setColor(Colors.DarkRed);
         
         const dmRow = new ActionRowBuilder()
             .setComponents(
-                new ButtonBuilder().setLabel('Appeal').setCustomId(`appeal-${savedCase.caseId}`).setStyle(ButtonStyle.Danger),
+                new ButtonBuilder().setLabel('Appeal').setCustomId(`appeal-${savedCase!.caseId}`).setStyle(ButtonStyle.Danger),
             );
         
         try {
@@ -107,11 +107,11 @@ export default class Ban extends Command {
             });
         } catch {};
 
-        await command.guild.members.ban(user.id, banOptions);
+        await command.guild!.members.ban(user.id, banOptions);
 
         const embed = new EmbedBuilder()
             .setTitle('Infraction')
-            .setDescription(`\`${savedCase.caseId}\` | Banned ${user} for \`${reason ?? 'No reason provided'}\``)
+            .setDescription(`\`${savedCase!.caseId}\` | Banned ${user} for \`${reason ?? 'No reason provided'}\``)
             .setColor(Colors.DarkRed)
             .setFooter(getFooter(command.user.displayAvatarURL()));
 
