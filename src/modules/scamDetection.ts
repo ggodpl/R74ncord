@@ -12,7 +12,7 @@ export class ScamDetection extends Base implements Messagable<true> {
         super(bot);
 
         this.messages = new Map();
-        this.exec = new CronJob('*/2 * * * * *', this.cleanup.bind(this), null, true);
+        this.exec = new CronJob('*/10 * * * * *', this.cleanup.bind(this), null, true);
     }
 
     async onMessage(message: Message<true>) {
@@ -21,15 +21,15 @@ export class ScamDetection extends Base implements Messagable<true> {
 
         const key = `${message.author.id}_${message.guild.id}`
 
-        if (!this.messages.has(key)) this.messages.set(key, { messages: [], expiresAt: Date.now() + 2000 });
+        if (!this.messages.has(key)) this.messages.set(key, { messages: [], expiresAt: Date.now() + 20000 });
         const messages = this.messages.get(key)!;
 
         if (messages.messages.some(m => m.channelId == message.channelId)) return;
 
         messages.messages.push({ id: message.id, channelId: message.channelId });
-        messages.expiresAt = Date.now() + 2000;
+        messages.expiresAt = Date.now() + 20000;
 
-        if (messages.messages.length >= 4) {
+        if (messages.messages.length >= 5) {
             await this.blockPotentialScam(message.author.id, message.guildId);
         }
     }
