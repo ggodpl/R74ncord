@@ -18,6 +18,7 @@ export class ScamDetection extends Base implements Messagable<true> {
     async onMessage(message: Message<true>) {
         if (message.author.bot) return;
         if (!message.guild) return;
+        if (message.channel.isThread()) return;
 
         const key = `${message.author.id}_${message.guild.id}`
 
@@ -67,7 +68,7 @@ export class ScamDetection extends Base implements Messagable<true> {
             }
     
             try {
-                await member.timeout(24 * 60 * 60 * 1000, 'Scam detection. You are sending messages too quickly! If this is a mistake or you got your account back, appeal this timeout.');
+                await member.timeout(24 * 60 * 60 * 1000, 'Potential scam detection. You are sending messages too quickly! If this is a mistake or you got your account back, appeal this timeout.');
             } catch (err) {
                 Logger.error('Failed to timeout: ' + err, 'SCAM DETECTION');
             }
