@@ -56,6 +56,12 @@ export class ScamDetection extends Base implements Messagable<true> {
 
             if (!member.moderatable) return;
     
+            try {
+                await member.timeout(24 * 60 * 60 * 1000, 'Potential scam detection. You are sending messages too quickly! If this is a mistake or you got your account back, appeal this timeout.');
+            } catch (err) {
+                Logger.error('Failed to timeout: ' + err, 'SCAM DETECTION');
+            }
+    
             for (const message of messages.messages) {
                 const channel = await guild.channels.fetch(message.channelId) as GuildTextBasedChannel;
                 if (!channel) continue;
@@ -65,12 +71,6 @@ export class ScamDetection extends Base implements Messagable<true> {
                     await msg.delete();
                 // no need to do anything if the message doesnt even exist
                 } catch {};
-            }
-    
-            try {
-                await member.timeout(24 * 60 * 60 * 1000, 'Potential scam detection. You are sending messages too quickly! If this is a mistake or you got your account back, appeal this timeout.');
-            } catch (err) {
-                Logger.error('Failed to timeout: ' + err, 'SCAM DETECTION');
             }
         } catch (err) {
             Logger.error('Failed to fetch: ' + err, 'SCAM DETECTION');
