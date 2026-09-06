@@ -59,6 +59,7 @@ export class FreePing extends Base implements Messagable<true> {
     async onMessage(message: Message<true>) {
         if (message.author.bot) return;
         if (!message.guild) return;
+        if (await this.bot.policy.hasUserOptedOutOfMessageContent(message.author.id)) return;
 
         const settings = await this.repository.getFreePingSettings(message.guildId);
 

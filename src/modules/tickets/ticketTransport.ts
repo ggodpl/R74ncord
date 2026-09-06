@@ -23,6 +23,7 @@ export class TicketTransport extends Base {
     async sendMessageTicket(thread: ForumThreadChannel, user: User, message: Message) {
         const webhook = await this.bot.webhooks.getChannelWebhook(thread.parent as ForumChannel, 'ticket-relay');
         if (!webhook) return;
+        if (await this.bot.policy.hasUserOptedOutOfMessageContent(message.author.id)) return;
 
         try {
             await webhook.send({
@@ -44,6 +45,8 @@ export class TicketTransport extends Base {
     }
 
     async sendTicketDM(userId: string, message: Message) {
+        if (await this.bot.policy.hasUserOptedOutOfMessageContent(message.author.id)) return;
+        
         this.sendMessageUser(userId, {
             content: message.content,
             files: [...message.attachments.values()],

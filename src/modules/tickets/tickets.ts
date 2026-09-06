@@ -229,6 +229,10 @@ export class TicketsModule extends Base implements Initializable<never>, Messaga
     }
 
     async onMessageDM(message: Message) {
+        if (await this.bot.policy.hasUserOptedOutOfMessageContent(message.author.id)) {
+            message.reply(TicketMessages.optedOut());
+            return;
+        }
         const ticket = await TicketRepository.getTicketUser(GUILD_ID, message.author.id);
 
         if (ticket) {

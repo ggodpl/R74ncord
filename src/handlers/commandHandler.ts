@@ -64,6 +64,19 @@ export class CommandHandler extends Handler<Command> {
                 return Logger.warn(`Unregistered command has been called: ${interaction.commandName}`, 'COMMAND');
             }
 
+            if (!command.data.dm && !interaction.guild) {
+                const error = new EmbedBuilder()
+                    .setTitle('Uh oh!')
+                    .setDescription('This command cannot be used in DMs!')
+                    .setColor(Colors.Red)
+                    .setFooter(getFooter(interaction.user.displayAvatarURL()));
+                
+                await interaction.reply({
+                    embeds: [error]
+                });
+                return;
+            }
+
             if (!command.data.isModal) {
                 await interaction.deferReply({
                     flags: command.data.isEphemeral ? [MessageFlags.Ephemeral] : []

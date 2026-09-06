@@ -117,6 +117,7 @@ export abstract class Command {
         }
 
         if (this.data.dm) builder.setContexts(InteractionContextType.Guild, InteractionContextType.BotDM);
+        else builder.setContexts(InteractionContextType.Guild);
 
         return builder.toJSON();
     }

@@ -19,6 +19,7 @@ import { CommandJointDeployer } from "./modules/commandJointDeployer";
 import { ScamDetection } from './modules/scamDetection';
 import { WebhookManager } from './modules/webhookManager';
 import { FreePing } from './modules/freePing';
+import { PolicyModule } from './modules/policy';
 
 export class Bot {
     client: Client;
@@ -44,6 +45,7 @@ export class Bot {
     scamDetection: ScamDetection;
     webhooks: WebhookManager;
     freePing: FreePing;
+    policy: PolicyModule;
 
     constructor (options?: ClientOptions) {
         this.client = new Client({ intents: ['Guilds', 'GuildMessages', 'MessageContent', 'DirectMessages', 'GuildBans', 'GuildModeration', 'GuildMembers'], partials: [Partials.Channel], ...options });
@@ -64,6 +66,7 @@ export class Bot {
         this.scamDetection = new ScamDetection(this);
         this.webhooks = new WebhookManager(this);
         this.freePing = new FreePing(this);
+        this.policy = new PolicyModule(this);
     }
 
     addEventHandle(event: string, listener: Event<any>) {
@@ -114,6 +117,7 @@ export class Bot {
 
         RankCard.initialize();
         this.tickets.initialize();
+        this.policy.initialize();
 
         this.jointDeployer.initialize();
     }

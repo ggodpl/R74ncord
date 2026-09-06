@@ -220,4 +220,11 @@ export class TicketMessages {
                 .addTextDisplayComponents(t => t.setContent('Ticket archived successfully.'))
         )
     }
+
+    static optedOut() {
+        return this.container(
+            new ContainerBuilder()
+                .addTextDisplayComponents(t => t.setContent('Since you opted out of message content usage, you cannot use the ticketing system at this time. If you wish to allow the bot to relay your messages, use the `/opt-out-of-message-content opt-out:false` command'))
+        )
+    }
 }
