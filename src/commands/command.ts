@@ -1,4 +1,4 @@
-import { ApplicationCommandOptionBase, ApplicationCommandOptionType, ChatInputCommandInteraction, InteractionContextType, ModalSubmitInteraction, PermissionsBitField, RESTPostAPIChatInputApplicationCommandsJSONBody, SlashCommandAttachmentOption, SlashCommandBooleanOption, SlashCommandBuilder, SlashCommandChannelOption, SlashCommandIntegerOption, SlashCommandMentionableOption, SlashCommandNumberOption, SlashCommandRoleOption, SlashCommandStringOption, SlashCommandUserOption } from "discord.js";
+import { ApplicationCommandOptionBase, ApplicationCommandOptionType, ChatInputCommandInteraction, InteractionContextType, ModalSubmitInteraction, PermissionsBitField, RESTPostAPIChatInputApplicationCommandsJSONBody, SlashCommandAttachmentOption, SlashCommandBooleanOption, SlashCommandBuilder, SlashCommandChannelOption, SlashCommandIntegerOption, SlashCommandMentionableOption, SlashCommandNumberOption, SlashCommandRoleOption, SlashCommandStringOption, SlashCommandSubcommandBuilder, SlashCommandUserOption } from "discord.js";
 import { Bot } from "../bot";
 import { Logger } from "../logger";
 
@@ -29,6 +29,7 @@ export interface CommandData {
     isEphemeral?: boolean;
     dm?: boolean;
     isModal?: boolean;
+    subcommands?: Command[];
 }
 
 export abstract class Command {
@@ -69,6 +70,48 @@ export abstract class Command {
             && data.description.length < 100;
     }
 
+    private addOptionsToSlashCommandOrSubcommandBuilder(builder: SlashCommandBuilder | SlashCommandSubcommandBuilder) {
+        if (!this.data.options) return builder;
+        // i hate this code
+        // macros in TS when 
+        for (const option of this.data.options) {    
+            switch (option.type) {
+                case ApplicationCommandOptionType.Attachment:
+                    builder.addAttachmentOption(option as SlashCommandAttachmentOption);
+                    break;
+                case ApplicationCommandOptionType.Boolean:
+                    builder.addBooleanOption(option as SlashCommandBooleanOption);
+                    break;
+                case ApplicationCommandOptionType.Channel:
+                    builder.addChannelOption(option as SlashCommandChannelOption);
+                    break;
+                case ApplicationCommandOptionType.Integer:
+                    builder.addIntegerOption(option as SlashCommandIntegerOption);
+                    break;
+                case ApplicationCommandOptionType.Mentionable:
+                    builder.addMentionableOption(option as SlashCommandMentionableOption);
+                    break;
+                case ApplicationCommandOptionType.Number:
+                    builder.addNumberOption(option as SlashCommandNumberOption);
+                    break;
+                case ApplicationCommandOptionType.Role:
+                    builder.addRoleOption(option as SlashCommandRoleOption);
+                    break;
+                case ApplicationCommandOptionType.String:
+                    builder.addStringOption(option as SlashCommandStringOption);
+                    break;
+                case ApplicationCommandOptionType.User:
+                    builder.addUserOption(option as SlashCommandUserOption);
+                    break;
+                default:
+                    Logger.error("Unsupported command option", "COMMAND");
+                    break;
+            }
+        }
+
+        return builder;
+    }
+
     toSlashCommand(nameOverride?: string) {
         const builder = new SlashCommandBuilder()
             .setName(nameOverride ?? this.getName())
@@ -77,42 +120,10 @@ export abstract class Command {
         const perms = this.getPermissionLevel();
         if (perms) builder.setDefaultMemberPermissions(PermissionsMap[perms]);
         
-        if (this.data.options) {
-            // i hate this code
-            // macros in TS when 
-            for (const option of this.data.options) {    
-                switch (option.type) {
-                    case ApplicationCommandOptionType.Attachment:
-                        builder.addAttachmentOption(option as SlashCommandAttachmentOption);
-                        break;
-                    case ApplicationCommandOptionType.Boolean:
-                        builder.addBooleanOption(option as SlashCommandBooleanOption);
-                        break;
-                    case ApplicationCommandOptionType.Channel:
-                        builder.addChannelOption(option as SlashCommandChannelOption);
-                        break;
-                    case ApplicationCommandOptionType.Integer:
-                        builder.addIntegerOption(option as SlashCommandIntegerOption);
-                        break;
-                    case ApplicationCommandOptionType.Mentionable:
-                        builder.addMentionableOption(option as SlashCommandMentionableOption);
-                        break;
-                    case ApplicationCommandOptionType.Number:
-                        builder.addNumberOption(option as SlashCommandNumberOption);
-                        break;
-                    case ApplicationCommandOptionType.Role:
-                        builder.addRoleOption(option as SlashCommandRoleOption);
-                        break;
-                    case ApplicationCommandOptionType.String:
-                        builder.addStringOption(option as SlashCommandStringOption);
-                        break;
-                    case ApplicationCommandOptionType.User:
-                        builder.addUserOption(option as SlashCommandUserOption);
-                        break;
-                    default:
-                        Logger.error("Unsupported command option", "COMMAND");
-                        break;
-                }
+        this.addOptionsToSlashCommandOrSubcommandBuilder(builder);
+        if (this.data.subcommands) {
+            for (const subcommand of this.data.subcommands) {
+                builder.addSubcommand(subcommand.toSubcommand());
             }
         }
 
@@ -120,6 +131,16 @@ export abstract class Command {
         else builder.setContexts(InteractionContextType.Guild);
 
         return builder.toJSON();
+    }
+
+    toSubcommand(): SlashCommandSubcommandBuilder {
+        const builder = new SlashCommandSubcommandBuilder()
+            .setName(this.getName())
+            .setDescription(this.getDescription());
+        
+        this.addOptionsToSlashCommandOrSubcommandBuilder(builder);
+        
+        return builder;
     }
 
     abstract execute(bot: Bot, command: ChatInputCommandInteraction): void;

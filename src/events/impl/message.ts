@@ -18,6 +18,7 @@ export default class MessageHandler extends Event<'messageCreate'> {
         if (message.inGuild()) {
             bot.scamDetection.onMessage(message);
             bot.freePing.onMessage(message);
+            bot.serverEvents.onMessage(message);
         }
     }
 }

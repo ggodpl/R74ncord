@@ -21,7 +21,7 @@ class FreePingRepository {
             minimumLevel,
         }), {
             upsert: true,
-        })
+        });
     }
 
     static async getFreePingSettings(guildId: string) {

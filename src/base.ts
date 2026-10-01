@@ -1,4 +1,4 @@
-import { Message } from 'discord.js';
+import { Message, MessageReaction, User } from 'discord.js';
 import { Bot } from "./bot";
 import { Registry } from "./registry";
 
@@ -25,5 +25,9 @@ export interface Initializable<T> {
 }
 
 export interface Messagable<InGuild extends boolean> {
-    onMessage: (message: Message<InGuild>) => Promise<void>,
+    onMessage: (message: Message<InGuild>) => Promise<void>;
+}
+
+export interface Reactable {
+    onReact: (messageReaction: MessageReaction, user: User) => Promise<void>;
 }

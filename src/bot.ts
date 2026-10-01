@@ -20,6 +20,7 @@ import { ScamDetection } from './modules/scamDetection';
 import { WebhookManager } from './modules/webhookManager';
 import { FreePing } from './modules/freePing';
 import { PolicyModule } from './modules/policy';
+import { ServerEvents } from './modules/serverEvents/serverEvents';
 
 export class Bot {
     client: Client;
@@ -46,9 +47,10 @@ export class Bot {
     webhooks: WebhookManager;
     freePing: FreePing;
     policy: PolicyModule;
+    serverEvents: ServerEvents;
 
     constructor (options?: ClientOptions) {
-        this.client = new Client({ intents: ['Guilds', 'GuildMessages', 'MessageContent', 'DirectMessages', 'GuildBans', 'GuildModeration', 'GuildMembers'], partials: [Partials.Channel], ...options });
+        this.client = new Client({ intents: ['Guilds', 'GuildMessages', 'MessageContent', 'DirectMessages', 'GuildBans', 'GuildModeration', 'GuildMembers', 'GuildMessageReactions'], partials: [Partials.Channel, Partials.Reaction, Partials.User, Partials.Message], ...options });
 
         this.clientId = process.env.CLIENT_ID ?? "";
         this.clientSecret = process.env.CLIENT_SECRET ?? "";
@@ -67,6 +69,7 @@ export class Bot {
         this.webhooks = new WebhookManager(this);
         this.freePing = new FreePing(this);
         this.policy = new PolicyModule(this);
+        this.serverEvents = new ServerEvents(this);
     }
 
     addEventHandle(event: string, listener: Event<any>) {

@@ -82,6 +82,15 @@ export class CommandHandler extends Handler<Command> {
                     flags: command.data.isEphemeral ? [MessageFlags.Ephemeral] : []
                 });
             }
+            
+            if (command.data.subcommands) {
+                const subcommandName = interaction.options.getSubcommand();
+                const subcommand = command.data.subcommands.find(s => s.getName() === subcommandName);
+                if (!subcommand) command.execute(this.bot, interaction);
+                else subcommand.execute(this.bot, interaction);
+
+                return;
+            }
 
             command.execute(this.bot, interaction);
         } catch (err) {
