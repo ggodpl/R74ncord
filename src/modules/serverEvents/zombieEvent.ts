@@ -172,11 +172,7 @@ export class ZombieEventModule extends Base implements Messagable<true>, Reactab
         const eventSettings = await this.getEventSettings(fullMessage.guildId)!;
         if (!eventSettings) return;
         if (!eventSettings.startedAt) return;
-        if ((fullMessage.createdTimestamp < eventSettings.startedAt) || (fullMessage.createdTimestamp < Date.now() - (1000 * 60 * 60 * 24 * 5))) {
-            console.log(fullMessage.createdTimestamp < eventSettings.startedAt);
-            console.log(fullMessage.createdTimestamp < Date.now() - (1000 * 60 * 60 * 24 * 5));
-            return;
-        }
+        if ((fullMessage.createdTimestamp < eventSettings.startedAt) || (fullMessage.createdTimestamp < Date.now() - (1000 * 60 * 60 * 24 * 5))) return;
 
         if (fullMessage.author.id === user.id) return;
 
