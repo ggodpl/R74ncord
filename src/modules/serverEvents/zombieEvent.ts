@@ -152,10 +152,11 @@ export class ZombieEventModule extends Base implements Messagable<true>, Reactab
         const eventSettings = await this.getEventSettings(message.guildId)!;
         if (!eventSettings) return;
         if (!eventSettings.startedAt) return;
-        if ((message.createdTimestamp < eventSettings.startedAt) || (message.createdTimestamp < Date.now() - (1000 * 60 * 60 * 24 * 5))) return;
 
         const original = await message.fetchReference();
         if (original.author.id === message.author.id) return;
+
+        if ((original.createdTimestamp < eventSettings.startedAt) || (original.createdTimestamp < Date.now() - (1000 * 60 * 60 * 24 * 5))) return;
 
         await this.infectUser(message.guildId, original.author.id, message.author.id);
     }
