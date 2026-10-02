@@ -141,7 +141,6 @@ export class ZombieEventModule extends Base implements Messagable<true>, Reactab
     async isEventRunning(guildId: string) {
         const settings = await this.getEventSettings(guildId);
 
-        console.log(!!settings, settings?.running, (settings?.endsAt ?? 0) > Date.now());
         return !!settings && settings.running && settings.endsAt > Date.now();
     }
 
@@ -164,27 +163,19 @@ export class ZombieEventModule extends Base implements Messagable<true>, Reactab
     async onReact(messageReaction: MessageReaction, user: User) {
         const { message } = messageReaction;
         const fullMessage = await message.fetch();
-        console.log('reaction added')
         if (!fullMessage.inGuild()) return;
-        console.log('in guild');
         if (messageReaction.emoji.name !== '🧠') return;
-        console.log('brain reaction');
         if (!(await this.isEventRunning(fullMessage.guildId))) return;
-        console.log('event running');
         if (!(await this.isInfected(fullMessage.guildId, user.id))) return;
-        console.log('user infected');
 
         const eventSettings = await this.getEventSettings(fullMessage.guildId)!;
         if (!eventSettings) return;
-        console.log('settings found');
         if (!eventSettings.startedAt) return;
-        console.log('event started');
         if ((fullMessage.createdTimestamp < eventSettings.startedAt) || (fullMessage.createdTimestamp < Date.now() - (1000 * 60 * 60 * 24 * 5))) {
             console.log(fullMessage.createdTimestamp < eventSettings.startedAt);
             console.log(fullMessage.createdTimestamp < Date.now() - (1000 * 60 * 60 * 24 * 5));
             return;
         }
-        console.log('message valid');
 
         if (fullMessage.author.id === user.id) return;
 
