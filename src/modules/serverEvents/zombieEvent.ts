@@ -36,6 +36,16 @@ class ZombieEventRepository {
         });
     }
 
+    static async stopEvent(guildId: string) {
+        if (!(await this.getEventSettings(guildId))) return;
+
+        await Zombie_GuildSettings.updateOne({
+            guildId,
+        }, {
+            running: false,
+        });
+    }
+
     static async isUserInfected(guildId: string, userId: string) {
         const user = await Zombie_InfectedUsers.findOne({
             guildId,
@@ -80,6 +90,16 @@ export class ZombieEventModule extends Base implements Messagable<true>, Reactab
         await this.repository.startEvent(guildId);
 
         settings.running = true;
+        return true;
+    }
+
+    async stopEvent(guildId: string) {
+        const settings = await this.getEventSettings(guildId);
+        if (!settings) return false;
+
+        await this.repository.stopEvent(guildId);
+
+        settings.running = false;
         return true;
     }
 
