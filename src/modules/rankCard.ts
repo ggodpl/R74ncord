@@ -1,5 +1,6 @@
-import { Canvas, loadImage, registerFont } from "canvas";
+import { createCanvas, GlobalFonts, loadImage } from "@napi-rs/canvas";
 import { Sandboxels } from "./sandboxels";
+import path from 'path';
 
 export interface RankData {
     rank: number;
@@ -11,7 +12,8 @@ export interface RankData {
 
 export class RankCard {
     static initialize() {
-        registerFont("static/fonts/PressStart2P-Regular.ttf", { family: "Press Start 2P Regular" });
+        const fontsDir = path.join(process.cwd(), 'static', 'fonts');
+        GlobalFonts.registerFromPath(path.join(fontsDir, 'PressStart2P-Regular.tff'), 'Press Start 2P Regular');
     }
 
     static fill(sandboxels: Sandboxels, rankData: RankData) {
@@ -42,7 +44,7 @@ export class RankCard {
 
     static async generateAvatarContext(avatarURL: string) {
         const size = 85
-        const canvas = new Canvas(size, size);
+        const canvas = createCanvas(size, size);
         const ctx = canvas.getContext("2d");
 
         ctx.beginPath();
@@ -54,13 +56,13 @@ export class RankCard {
 
         ctx.drawImage(avatar, 0, 0, size, size);
 
-        return canvas.toBuffer();
+        return canvas.encode('png');
     }
 
     static async generateRankCard(avatarURL: string, username: string, element: string, rankData: RankData) {
         const width = 500;
         const height = 200;
-        const canvas = new Canvas(width, height);
+        const canvas = createCanvas(width, height);
         const ctx = canvas.getContext("2d");
 
         ctx.fillStyle = "#000";
@@ -70,7 +72,7 @@ export class RankCard {
         const sandboxels = new Sandboxels(width / pixelSize, height / pixelSize, element ?? "sand");
         this.fill(sandboxels, rankData);
 
-        const bg = await loadImage(sandboxels.render(pixelSize));
+        const bg = await loadImage(await sandboxels.render(pixelSize));
 
         ctx.drawImage(bg, 0, 0, width, height);
 
@@ -90,7 +92,7 @@ export class RankCard {
         ctx.drawImage(avatar, avatarOffsetX, avatarOffsetY, avatarSize, avatarSize);
 
         ctx.fillStyle = "#fff";
-        ctx.font = '20px "Press Start 2P Regular"';
+        ctx.font = '20px "Press Start 2P"';
         ctx.fillText(username, imageOffsetX + 10, imageOffsetY + 30);
         
         const usernameWidth = ctx.measureText(username).width;
@@ -99,16 +101,16 @@ export class RankCard {
         const levelOffset = avatarOffsetX + avatarSize + 20;
 
         ctx.fillStyle = "#7F7F7F";
-        ctx.font = '10px "Press Start 2P Regular"';
+        ctx.font = '10px "Press Start 2P"';
         const rankWidth = ctx.measureText(`#${rankData.rank}`).width;
         ctx.fillText(`#${rankData.rank}`, imageOffsetX + frontWidth - rankWidth - 10, imageOffsetY + 20);
         ctx.fillText(`${rankData.xp}/${rankData.max}`, levelOffset, avatarOffsetY + 30);
         ctx.fillText(`Total: ${rankData.totalXp}`, levelOffset, avatarOffsetY + 45);
 
         ctx.fillStyle = "#fff";
-        ctx.font = '15px "Press Start 2P Regular"';
+        ctx.font = '15px "Press Start 2P"';
         ctx.fillText(`Level: ${rankData.level}`, levelOffset, avatarOffsetY + 15);
 
-        return canvas.toBuffer();
+        return canvas.encode('png');
     }
 }

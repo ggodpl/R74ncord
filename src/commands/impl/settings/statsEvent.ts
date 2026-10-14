@@ -34,7 +34,7 @@ class StatsZombieEvent extends Command {
         const rawData = command.options.getBoolean('raw-data', false) ?? false;
     
         const allUsers = await Zombie_InfectedUsers.find({
-            guildId: '939255181474955331',
+            guildId: command.guildId,
         }).lean();
 
         if (allUsers.length === 0) return command.editReply({

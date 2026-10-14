@@ -1,4 +1,4 @@
-import { Canvas } from "canvas";
+import { createCanvas } from "@napi-rs/canvas";
 import { LevelElementsModule } from "./levelElements";
 import { randomElement } from "../utils/array";
 
@@ -132,10 +132,10 @@ export class Sandboxels {
         this.pixels.forEach(p => this.tickPowder(p));
     }
 
-    render(pixelSize: number) {
+    async render(pixelSize: number) {
         const width = this.width * pixelSize;
         const height = this.height * pixelSize;
-        const canvas = new Canvas(width, height);
+        const canvas = createCanvas(width, height);
         const ctx = canvas.getContext("2d");
 
         ctx.fillStyle = "#000";
@@ -146,6 +146,6 @@ export class Sandboxels {
             ctx.fillRect(pixel.x * pixelSize, (this.height - 1 - pixel.y) * pixelSize, pixelSize, pixelSize);
         }
 
-        return canvas.toBuffer();
+        return canvas.encode('png');
     }
 }

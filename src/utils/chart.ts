@@ -3,8 +3,8 @@ import { Chart, ChartConfiguration, ChartType, Plugin, registerables } from 'cha
 import path from 'path';
 
 const fontsDir = path.join(process.cwd(), 'static', 'fonts');
-GlobalFonts.registerFromPath(path.join(fontsDir, 'Inter-Regular.tff'), 'Inter');
-GlobalFonts.registerFromPath(path.join(fontsDir, 'NotoColorEmoji.tff'), 'Noto Color Emoji');
+GlobalFonts.registerFromPath(path.join(fontsDir, 'Inter-Regular.ttf'), 'Inter');
+GlobalFonts.registerFromPath(path.join(fontsDir, 'NotoColorEmoji.ttf'), 'Noto Color Emoji');
 
 Chart.register(...registerables);
 
