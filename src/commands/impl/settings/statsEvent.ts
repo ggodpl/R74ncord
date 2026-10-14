@@ -71,10 +71,10 @@ class StatsZombieEvent extends Command {
 
         if (rawData) {
             const attachments = [
-                new AttachmentBuilder(JSON.stringify(zombies)).setName('zombies.json'),
-                new AttachmentBuilder(JSON.stringify(dailyInfections)).setName('infection-timeline.json'),
-                new AttachmentBuilder(JSON.stringify(dailyInfectionsCumulative)).setName('infection-timeline-cumulative.json'),
-                new AttachmentBuilder(JSON.stringify(allUsers)).setName('raw.json')
+                new AttachmentBuilder(Buffer.from(JSON.stringify(zombies))).setName('zombies.json'),
+                new AttachmentBuilder(Buffer.from(JSON.stringify(dailyInfections))).setName('infection-timeline.json'),
+                new AttachmentBuilder(Buffer.from(JSON.stringify(dailyInfectionsCumulative))).setName('infection-timeline-cumulative.json'),
+                new AttachmentBuilder(Buffer.from(JSON.stringify(allUsers))).setName('raw.json')
             ];
 
             return command.editReply({
