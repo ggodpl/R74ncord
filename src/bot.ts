@@ -14,6 +14,7 @@ import { ModerationModule } from "./modules/moderation";
 import { Scheduler } from "./modules/scheduler";
 import { TicketsModule } from "./modules/tickets/tickets";
 import { ButtonHandler } from "./handlers/buttonHandler";
+import { SelectMenuHandler } from "./handlers/selectMenuHandler";
 import { ContextMenuHandler } from "./handlers/contextMenuHandler";
 import { CommandJointDeployer } from "./modules/commandJointDeployer";
 import { ScamDetection } from './modules/scamDetection';
@@ -31,6 +32,7 @@ export class Bot {
     commands!: CommandHandler;
     events!: EventHandler;
     buttons!: ButtonHandler;
+    selectMenus!: SelectMenuHandler;
     contextMenus!: ContextMenuHandler;
 
     db: MongoDB;
@@ -98,6 +100,12 @@ export class Bot {
         return this;
     }
 
+    setSelectMenuHandler(handler: SelectMenuHandler) {
+        this.selectMenus = handler;
+
+        return this;
+    }
+
     setContextMenuHandler(handler: ContextMenuHandler) {
         this.contextMenus = handler;
 
@@ -114,6 +122,7 @@ export class Bot {
         await this.commands.initialize();
         await this.events.initialize();
         await this.buttons.initialize();
+        await this.selectMenus.initialize();
         await this.contextMenus.initialize();
 
         await this.db.initialize(process.env.MONGODB_URI!);

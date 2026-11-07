@@ -14,7 +14,9 @@ export default class Reply extends ContextMenu<ApplicationCommandType.Message> i
     }
 
     async execute(bot: Bot, interaction: MessageContextMenuCommandInteraction<CacheType>): Promise<void> {
-        const ticket = await bot.tickets.getTicketByChannel(interaction.channelId);
+        if (!interaction.inGuild()) return void interaction.editReply('You need to be in a guild to use this context menu!');
+
+        const ticket = await bot.tickets.getTicketByChannel(interaction.guildId, interaction.channelId);
 
         if (!ticket) {
             interaction.editReply('You have to been in a ticket channel to use this context menu!');
@@ -57,7 +59,7 @@ export default class Reply extends ContextMenu<ApplicationCommandType.Message> i
         
         const attachments = files ? Array.from(files.values()) : [];
         
-        const { success, reason } = await bot.tickets.reply(interaction.channelId!, content, attachments);
+        const { success, reason } = await bot.tickets.reply(interaction.guildId!, interaction.channelId!, content, attachments);
     
         if (!success) {
             interaction.reply(reason);

@@ -7,14 +7,22 @@ import path from 'path';
 import { promises as fs } from 'fs';
 import { Bot } from '../../bot';
 import { createTranscript, ExportReturnType } from 'discord-html-transcripts';
-import { Attachment, ForumChannel, ForumThreadChannel, Guild, Message, MessageFlags, TextChannel } from 'discord.js';
+import { Attachment, BaseInteraction, ForumChannel, ForumThreadChannel, Guild, Message, MessageCreateOptions, MessageFlags, TextChannel } from 'discord.js';
 
 export interface QuickStart {
     caseId?: number;
     message?: string;
 }
 
-const GUILD_ID = process.env['BASE_TICKET_GUILD']!;
+const LEGACY_GUILD_ID = process.env['BASE_TICKET_GUILD'];
+
+export function resolveTicketRef(interaction: BaseInteraction, first: string, second?: string): { guildId: string, ticketId: number } | null {
+    const guildId = second ? first : (interaction.guildId ?? LEGACY_GUILD_ID);
+    const ticketId = parseInt(second ?? first);
+    if (!guildId || isNaN(ticketId)) return null;
+
+    return { guildId, ticketId };
+}
 
 export class TicketsModule extends Base implements Initializable<never>, Messagable<true> {
     private ticketChannels: Set<string> = new Set();
@@ -28,16 +36,16 @@ export class TicketsModule extends Base implements Initializable<never>, Messaga
         this.transport = new TicketTransport(bot);
     }
 
-    async getTicketThread(channelId?: string): Promise<{ success: false, reason: string } | { success: true, reason: string, guild: Guild, channel: ForumChannel, thread: ForumThreadChannel }> {
+    async getTicketThread(guildId: string, channelId?: string): Promise<{ success: false, reason: string } | { success: true, reason: string, guild: Guild, channel: ForumChannel, thread: ForumThreadChannel }> {
         if (!channelId) return this.fail('NO_THREAD');
         
-        const settings = await this.bot.settings.getGuildSettings(GUILD_ID);
+        const settings = await this.bot.settings.getGuildSettings(guildId);
         if (!settings) return this.fail('NOT_READY');
 
         const forum = settings.ticketForum;
         if (!forum) return this.fail('NOT_READY');
         
-        const guild = this.bot.client.guilds.cache.get(GUILD_ID);
+        const guild = this.bot.client.guilds.cache.get(guildId);
         if (!guild) return this.fail('NO_GUILD');
 
         const channel = await guild.channels.fetch(forum) as ForumChannel;
@@ -55,29 +63,25 @@ export class TicketsModule extends Base implements Initializable<never>, Messaga
         }
     }
 
-    async createTicket(userId: string, quickStart: QuickStart) {
-        const activeTicket = await Tickets.findOne({
-            guildId: GUILD_ID,
-            userId,
-            status: { $ne: 'archived' },
-        });
+    async createTicket(guildId: string, userId: string, quickStart: QuickStart) {
+        const activeTicket = await TicketRepository.getTicketUser(userId);
 
         if (activeTicket) return this.fail('ALREADY_OPEN');
 
-        const settings = await this.bot.settings.getGuildSettings(GUILD_ID);
+        const settings = await this.bot.settings.getGuildSettings(guildId);
         if (!settings) return this.fail('NOT_READY');
 
         const ticketForum = settings.ticketForum;
         if (!ticketForum) return this.fail('NOT_READY');
 
-        const guild = this.bot.client.guilds.cache.get(GUILD_ID);
+        const guild = this.bot.client.guilds.cache.get(guildId);
         if (!guild) return this.fail('NO_GUILD');
 
         const channel = await guild.channels.fetch(ticketForum) as ForumChannel;
         if (!channel) return this.fail('NO_CHANNEL');
 
         const user = await this.bot.client.users.fetch(userId);
-        const ticket = await TicketRepository.createTicket(GUILD_ID, userId, quickStart.caseId);
+        const ticket = await TicketRepository.createTicket(guildId, userId, quickStart.caseId);
 
         const starterComponent = TicketMessages.starterComponent(user, ticket);
         
@@ -91,7 +95,7 @@ export class TicketsModule extends Base implements Initializable<never>, Messaga
 
         const embeds = [];
         if (quickStart.caseId) {
-            const infraction = await this.bot.moderation.getCase(GUILD_ID, quickStart.caseId);
+            const infraction = await this.bot.moderation.getCase(guildId, quickStart.caseId);
 
             if (!infraction) return this.fail('INVALID_CASE');
 
@@ -103,37 +107,40 @@ export class TicketsModule extends Base implements Initializable<never>, Messaga
 
         if (embeds.length) thread.send({ embeds });
 
-        await TicketRepository.addChannelId(GUILD_ID, ticket!.ticketId!, thread.id);
+        await TicketRepository.addChannelId(guildId, ticket!.ticketId!, thread.id);
 
         this.ticketChannels.add(thread.id);
 
         return this.success();
     }
 
-    async getTicketByChannel(channelId: string) {
-        return await TicketRepository.getTicketChannel(GUILD_ID, channelId);
+    async getTicketByChannel(guildId: string, channelId: string) {
+        return await TicketRepository.getTicketChannel(guildId, channelId);
     }
 
-    async getTicketByUser(userId: string) {
-        return await TicketRepository.getTicketUser(GUILD_ID, userId);
+    async getTicketByUser(userId: string, guildId?: string) {
+        const ticket = await TicketRepository.getTicketUser(userId);
+        if (ticket && guildId && ticket.guildId != guildId) return null;
+
+        return ticket;
     }
 
-    async getTicketById(ticketId: number) {
-        return await TicketRepository.getTicket(GUILD_ID, ticketId);
+    async getTicketById(guildId: string, ticketId: number) {
+        return await TicketRepository.getTicket(guildId, ticketId);
     }
 
-    async closeTicket(userId: string, closedBy: string) {
-        const ticket = await TicketRepository.getTicketUser(GUILD_ID, userId);
+    async closeTicket(userId: string, closedBy: string, guildId?: string) {
+        const ticket = await this.getTicketByUser(userId, guildId);
         if (!ticket) return this.fail('NO_TICKET');
 
-        const res = await this.getTicketThread(ticket.channelId!);
+        const res = await this.getTicketThread(ticket.guildId, ticket.channelId!);
         if (!res.success) return res;
 
         const { thread } = res;
 
         if (ticket.status != 'open') return this.fail('ALREADY_CLOSED');
 
-        await TicketRepository.closeTicket(GUILD_ID, ticket.ticketId!, closedBy);
+        await TicketRepository.closeTicket(ticket.guildId, ticket.ticketId!, closedBy);
 
         if (userId != closedBy) {
             this.transport.sendMessageUser(userId, TicketMessages.closedByAdminMessageDM());
@@ -144,19 +151,19 @@ export class TicketsModule extends Base implements Initializable<never>, Messaga
         return this.success();
     }
 
-    async archiveTicket(ticketId: number) {
-        const ticket = await TicketRepository.getTicket(GUILD_ID, ticketId);
+    async archiveTicket(guildId: string, ticketId: number) {
+        const ticket = await TicketRepository.getTicket(guildId, ticketId);
         if (!ticket) return this.fail('NO_TICKET');
 
-        const settings = await this.bot.settings.getGuildSettings(GUILD_ID);
+        const settings = await this.bot.settings.getGuildSettings(guildId);
 
-        const res = await this.getTicketThread(ticket.channelId!);
+        const res = await this.getTicketThread(guildId, ticket.channelId!);
         if (!res.success) return res;
 
         const { guild, thread } = res;
 
         const transcript = await this.generateTicketTranscript(thread);
-        const transcriptName = `ticket-${ticket.userId}-${ticket.ticketId}.html`;
+        const transcriptName = `ticket-${guildId}-${ticket.userId}-${ticket.ticketId}.html`;
 
         if (settings && settings.transcriptChannel) {
             const transcriptChannel = await guild.channels.fetch(settings.transcriptChannel) as TextChannel;
@@ -173,15 +180,16 @@ export class TicketsModule extends Base implements Initializable<never>, Messaga
 
         const transcriptMetadata = {
             id: ticket.ticketId,
+            guildId,
             userId: ticket.userId,
             createdAt: ticket.createdAt,
         };
 
-        await fs.writeFile(path.join(this.TRANSCRIPTS_DIR, 'meta', `ticket-${ticket.userId}-${ticket.ticketId}.json`), JSON.stringify(transcriptMetadata), {
+        await fs.writeFile(path.join(this.TRANSCRIPTS_DIR, 'meta', `ticket-${guildId}-${ticket.userId}-${ticket.ticketId}.json`), JSON.stringify(transcriptMetadata), {
             encoding: 'utf-8'
         });
 
-        TicketRepository.archiveTicket(GUILD_ID, ticketId);
+        TicketRepository.archiveTicket(guildId, ticketId);
 
         await thread.setArchived(true, 'Ticket closed');
 
@@ -190,13 +198,13 @@ export class TicketsModule extends Base implements Initializable<never>, Messaga
         return this.success();
     }
 
-    async reopenTicket(ticketId: number, reopenedBy: string, force: boolean) {
-        const ticket = await TicketRepository.getTicket(GUILD_ID, ticketId);
+    async reopenTicket(guildId: string, ticketId: number, reopenedBy: string, force: boolean) {
+        const ticket = await TicketRepository.getTicket(guildId, ticketId);
         if (!ticket) return this.fail('NO_TICKET');
 
         if (ticket.status != 'closed') return this.fail(ticket.status == 'open' ? 'STILL_OPEN' : 'ARCHIVED');
 
-        const res = await this.getTicketThread(ticket.channelId!);
+        const res = await this.getTicketThread(guildId, ticket.channelId!);
         if (!res.success) return res;
         const { thread } = res;
 
@@ -204,7 +212,7 @@ export class TicketsModule extends Base implements Initializable<never>, Messaga
         const adminReopened = ticket.userId != reopenedBy;
 
         if ((adminClosed && adminReopened) || (!adminClosed && !adminReopened) || force) {
-            await TicketRepository.reopenTicket(GUILD_ID, ticket.ticketId!);
+            await TicketRepository.reopenTicket(guildId, ticket.ticketId!);
 
             thread.setArchived(false, 'Ticket re-opened');
 
@@ -228,12 +236,45 @@ export class TicketsModule extends Base implements Initializable<never>, Messaga
         });
     }
 
+    async getMutualGuilds(userId: string) {
+        const guilds = [];
+        for (const guild of this.bot.client.guilds.cache.values()) {
+            const settings = await this.bot.settings.getGuildSettings(guild.id);
+            if (!settings?.ticketForum) continue;
+            if (await this.isUserBlocked(guild.id, userId)) continue;
+            const member = await guild.members.fetch(userId).catch(() => null);
+            if (member) guilds.push(guild);
+        }
+
+        return guilds;
+    }
+
+    async openTicketForUser(guildId: string, userId: string, quickStart: QuickStart): Promise<MessageCreateOptions> {
+        if (await this.isUserBlocked(guildId, userId)) return TicketMessages.userBlocked();
+
+        const guild = this.bot.client.guilds.cache.get(guildId);
+        if (!guild) return TicketMessages.ticketCreationFailed(this.fail('NO_GUILD').reason);
+
+        if (!quickStart.caseId && !(await guild.members.fetch(userId).catch(() => null))) {
+            return TicketMessages.ticketCreationFailed(this.fail('NOT_MEMBER').reason);
+        }
+
+        const res = await this.createTicket(guildId, userId, quickStart);
+        if (!res.success) return TicketMessages.ticketCreationFailed(res.reason);
+
+        const ticket = await this.getTicketByUser(userId);
+        if (!ticket) return TicketMessages.ticketCreationFailed(this.fail('NO_TICKET').reason);
+
+        return TicketMessages.ticketCreated(ticket, guild, userId);
+    }
+
     async onMessageDM(message: Message) {
         if (await this.bot.policy.hasUserOptedOutOfMessageContent(message.author.id)) {
             message.reply(TicketMessages.optedOut());
             return;
         }
-        const ticket = await TicketRepository.getTicketUser(GUILD_ID, message.author.id);
+
+        const ticket = await TicketRepository.getTicketUser(message.author.id);
 
         if (ticket) {
             if (ticket.status != 'open') {
@@ -243,13 +284,13 @@ export class TicketsModule extends Base implements Initializable<never>, Messaga
                     message.reply(TicketMessages.ticketClosed(ticket))
                 }
             } else {
-                const res = await this.getTicketThread(ticket.channelId ?? undefined);
+                const res = await this.getTicketThread(ticket.guildId, ticket.channelId ?? undefined);
                 if (!res.success) return;
 
                 this.transport.sendMessageTicket(res.thread, message.author, message);
             }
         } else {
-            message.reply(TicketMessages.openTicket(message.author));
+            message.reply(TicketMessages.openTicket(message.author, await this.getMutualGuilds(message.author.id)));
         }
     }
 
@@ -257,8 +298,8 @@ export class TicketsModule extends Base implements Initializable<never>, Messaga
         if (!message.guildId) return this.onMessageDM(message);
     }
 
-    async reply(channelId: string, content: string, files?: Attachment[]) {
-        const ticket = await TicketRepository.getTicketChannel(GUILD_ID, channelId);
+    async reply(guildId: string, channelId: string, content: string, files?: Attachment[]) {
+        const ticket = await TicketRepository.getTicketChannel(guildId, channelId);
         if (!ticket) return this.fail('NO_TICKET');
 
         if (ticket.status != 'open') return this.fail('CLOSED');
@@ -268,8 +309,8 @@ export class TicketsModule extends Base implements Initializable<never>, Messaga
         return this.success();
     }
 
-    async sendMessage(message: Message) {
-        const ticket = await TicketRepository.getTicketChannel(GUILD_ID, message.channel.id);
+    async sendMessage(message: Message<true>) {
+        const ticket = await TicketRepository.getTicketChannel(message.guildId, message.channel.id);
         if (!ticket) return this.fail('NO_TICKET');
 
         if (ticket.status != 'open') return this.fail('CLOSED');
@@ -279,16 +320,16 @@ export class TicketsModule extends Base implements Initializable<never>, Messaga
         return this.success();
     }
 
-    async blockUser(userId: string) {
-        await TicketRepository.blockUser(GUILD_ID, userId);
+    async blockUser(guildId: string, userId: string) {
+        await TicketRepository.blockUser(guildId, userId);
     }
 
-    async unblockUser(userId: string) {
-        await TicketRepository.unblockUser(GUILD_ID, userId);
+    async unblockUser(guildId: string, userId: string) {
+        await TicketRepository.unblockUser(guildId, userId);
     }
 
-    async isUserBlocked(userId: string) {
-        return !!(await TicketRepository.getUserBlock(GUILD_ID, userId));
+    async isUserBlocked(guildId: string, userId: string) {
+        return !!(await TicketRepository.getUserBlock(guildId, userId));
     }
 
     isTicket(channelId: string) {
@@ -311,10 +352,10 @@ export class TicketsModule extends Base implements Initializable<never>, Messaga
 
     async initialize() {
         const tickets = await Tickets.find({
-            guildId: GUILD_ID,
+            channelId: { $ne: null },
         }).lean();
 
-        tickets.filter(t => t.channelId).forEach(t => this.ticketChannels.add(t.channelId!));
+        tickets.forEach(t => this.ticketChannels.add(t.channelId!));
 
         return true;
     }

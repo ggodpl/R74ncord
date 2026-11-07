@@ -12,7 +12,7 @@ export interface RankData {
 
 export class RankCard {
     static initialize() {
-        const fontsDir = path.join(process.cwd(), 'static', 'fonts');
+        const fontsDir = path.join(__dirname, '..', '..', 'static', 'fonts');
         GlobalFonts.registerFromPath(path.join(fontsDir, 'PressStart2P-Regular.tff'), 'Press Start 2P Regular');
     }
 

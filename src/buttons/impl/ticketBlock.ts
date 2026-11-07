@@ -10,7 +10,9 @@ export default class TicketBlock extends Button {
     }
 
     async execute(bot: Bot, interaction: ButtonInteraction, userId: string): Promise<void> {
-        await bot.tickets.blockUser(userId);
+        if (!interaction.inGuild()) return void interaction.editReply('This button can only be used in a server');
+
+        await bot.tickets.blockUser(interaction.guildId, userId);
 
         interaction.editReply(`Successfully blocked <@${userId}> from opening new tickets. If you wish to unblock this user, use /ticket-unblock.`);
     }

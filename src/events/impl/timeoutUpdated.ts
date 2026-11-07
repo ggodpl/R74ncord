@@ -71,7 +71,7 @@ export default class TimeoutUpdated extends Event<'guildMemberUpdate'> {
                 .addSeparatorComponents(s => s)
                 .addTextDisplayComponents(t => t.setContent('If you believe this is a mistake, you can press the button below to start a new ticket.'))
                 .addActionRowComponents(r => r.setComponents(
-                    new ButtonBuilder().setStyle(ButtonStyle.Danger).setLabel('Appeal').setCustomId(`ticket-open_${newMember.id}_${savedCase.caseId}`)
+                    new ButtonBuilder().setStyle(ButtonStyle.Danger).setLabel('Appeal').setCustomId(`ticket-open_${newMember.id}_${guild.id}_${savedCase.caseId}`)
                 ));
     
             try {

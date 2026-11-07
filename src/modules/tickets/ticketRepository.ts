@@ -33,9 +33,8 @@ export class TicketRepository {
         });
     }
 
-    static async getTicketUser(guildId: string, userId: string) {
+    static async getTicketUser(userId: string) {
         return await Tickets.findOne({
-            guildId,
             userId,
             status: { $ne: 'archived' },
         });

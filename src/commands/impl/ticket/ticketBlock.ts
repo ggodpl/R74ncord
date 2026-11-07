@@ -20,7 +20,7 @@ export default class TicketBlock extends Command {
     async execute(bot: Bot, command: ChatInputCommandInteraction): Promise<void> {
         const user = command.options.getUser('user', true);
 
-        await bot.tickets.blockUser(user.id);
+        await bot.tickets.blockUser(command.guildId!, user.id);
 
         command.editReply(`Successfully blocked ${user.username} from opening new tickets`);
     }

@@ -11,9 +11,10 @@ export default class TicketClose extends Button {
     }
 
     async execute(bot: Bot, interaction: ButtonInteraction, userId: string): Promise<void> {
-        const ticket = await bot.tickets.getTicketByUser(userId);
+        const guildId = interaction.guildId ?? undefined;
+        const ticket = await bot.tickets.getTicketByUser(userId, guildId);
 
-        const { success, reason } = await bot.tickets.closeTicket(userId, interaction.user.id);
+        const { success, reason } = await bot.tickets.closeTicket(userId, interaction.user.id, guildId);
 
         if (!success) return void interaction.editReply(`Ticket did not close successfully. ${reason}`);
         if (!ticket) return void interaction.editReply('Ticket not found');

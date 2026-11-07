@@ -13,7 +13,7 @@ export default class Reply extends Command implements ModalCommand {
     }
 
     async execute(bot: Bot, command: ChatInputCommandInteraction): Promise<void> {
-        const ticket = await bot.tickets.getTicketByChannel(command.channelId);
+        const ticket = await bot.tickets.getTicketByChannel(command.guildId!, command.channelId);
     
         if (!ticket) {
             command.editReply('You can only use this command in active thread channels');
@@ -56,7 +56,7 @@ export default class Reply extends Command implements ModalCommand {
         
         const attachments = files ? Array.from(files.values()) : [];
 
-        const { success, reason } = await bot.tickets.reply(interaction.channelId!, content, attachments);
+        const { success, reason } = await bot.tickets.reply(interaction.guildId!, interaction.channelId!, content, attachments);
     
         if (!success) {
             interaction.reply(reason);

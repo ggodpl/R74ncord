@@ -3,12 +3,14 @@ import { Bot } from './bot';
 import { CommandHandler } from './handlers/commandHandler';
 import { EventHandler } from './handlers/eventHandler';
 import { ButtonHandler } from './handlers/buttonHandler';
+import { SelectMenuHandler } from './handlers/selectMenuHandler';
 import { ContextMenuHandler } from './handlers/contextMenuHandler';
 
 const bot = new Bot();
 bot.setCommandHandler(new CommandHandler(bot, 'commands/impl'))
    .setEventHandler(new EventHandler(bot, 'events/impl'))
    .setButtonHandler(new ButtonHandler(bot, 'buttons/impl'))
+   .setSelectMenuHandler(new SelectMenuHandler(bot, 'selectMenus/impl'))
    .setContextMenuHandler(new ContextMenuHandler(bot, 'contextMenus/impl'))
    .registerCategories(
       { id: 'admin', name: 'Admin', description: 'Admin-only commands' },

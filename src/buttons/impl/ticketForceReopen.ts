@@ -2,6 +2,7 @@ import { ButtonInteraction, InteractionEditReplyOptions } from 'discord.js';
 import { Bot } from '../../bot';
 import { Button } from '../button';
 import { TicketMessages } from '../../modules/tickets/ticketMessages';
+import { resolveTicketRef } from '../../modules/tickets/tickets';
 
 export default class TicketForceReopen extends Button {
     constructor () {
@@ -10,9 +11,10 @@ export default class TicketForceReopen extends Button {
         });
     }
 
-    async execute(bot: Bot, interaction: ButtonInteraction, ticketId: string): Promise<void> {
-        const ticket = await bot.tickets.getTicketById(parseInt(ticketId));
-        if (!ticket) {
+    async execute(bot: Bot, interaction: ButtonInteraction, ...args: string[]): Promise<void> {
+        const ref = resolveTicketRef(interaction, args[0], args[1]);
+        const ticket = ref && await bot.tickets.getTicketById(ref.guildId, ref.ticketId);
+        if (!ref || !ticket) {
             interaction.editReply('Invalid ticket');
             return;
         }
@@ -22,7 +24,7 @@ export default class TicketForceReopen extends Button {
             return;
         }
 
-        const { success, reason } = await bot.tickets.reopenTicket(parseInt(ticketId), interaction.user.id, true);
+        const { success, reason } = await bot.tickets.reopenTicket(ref.guildId, ref.ticketId, interaction.user.id, true);
         if (!success) {
             interaction.editReply(`Ticket cannot be re-opened. ${reason}`);
             return;

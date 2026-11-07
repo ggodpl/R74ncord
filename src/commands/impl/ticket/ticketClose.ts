@@ -21,8 +21,8 @@ export default class TicketClose extends Command {
         const user = command.options.getUser('user', false);
 
         if (user) {
-            if (await bot.tickets.getTicketByUser(user.id)) {
-                const result = await bot.tickets.closeTicket(user.id, command.user.id);
+            if (await bot.tickets.getTicketByUser(user.id, command.guildId!)) {
+                const result = await bot.tickets.closeTicket(user.id, command.user.id, command.guildId!);
 
                 if (result.success) {
                     command.editReply('Ticket closed successfully');
@@ -34,10 +34,10 @@ export default class TicketClose extends Command {
             }
         } else {
             if (bot.tickets.isTicket(command.channelId)) {
-                const ticket = await bot.tickets.getTicketByChannel(command.channelId);
+                const ticket = await bot.tickets.getTicketByChannel(command.guildId!, command.channelId);
                 if (!ticket) return void command.editReply('No active ticket found for this channel');
                 
-                const result = await bot.tickets.closeTicket(ticket.userId, command.user.id);
+                const result = await bot.tickets.closeTicket(ticket.userId, command.user.id, command.guildId!);
 
                 if (result.success) {
                     command.editReply('Ticket closed successfully');

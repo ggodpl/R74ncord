@@ -14,7 +14,9 @@ export default class StartTicket extends ContextMenu<ApplicationCommandType.User
     }
 
     async execute(bot: Bot, interaction: UserContextMenuCommandInteraction<CacheType>): Promise<void> {
-        const res = await bot.tickets.createTicket(interaction.targetUser.id, {});
+        if (!interaction.inGuild()) return void interaction.editReply('You need to be in a guild to use this context menu!');
+
+        const res = await bot.tickets.createTicket(interaction.guildId, interaction.targetUser.id, {});
         if (!res.success) {
             interaction.editReply(`Could not open a ticket. ${res.reason}`);
             return;

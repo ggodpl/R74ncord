@@ -1,4 +1,4 @@
-import { ButtonBuilder, ButtonStyle, Colors, ContainerBuilder, EmbedBuilder, MessageFlags, MessageCreateOptions, User, AttachmentBuilder } from 'discord.js';
+import { ButtonBuilder, ButtonStyle, Colors, ContainerBuilder, EmbedBuilder, MessageFlags, MessageCreateOptions, User, AttachmentBuilder, Guild, StringSelectMenuBuilder } from 'discord.js';
 import Tickets from '../../mongodb/models/Tickets';
 import Infractions from '../../mongodb/models/Infractions';
 import ms from 'ms';
@@ -10,7 +10,8 @@ type Infraction = InstanceType<typeof Infractions>;
 
 export class TicketMessages {
     public static readonly RESPONSES = {
-        ALREADY_OPEN: 'You already have an open ticket. Please close your existing ticket before opening a new one.',
+        ALREADY_OPEN: 'You already have an active ticket (possibly in another server). Please close and archive your existing ticket before opening a new one.',
+        NOT_MEMBER: 'You are not a member of that server.',
         NOT_READY: 'The ticketing system is not ready yet. Please contact the server moderators.',
         NO_GUILD: 'The bot is not in the guild. Please contact the server moderators.',
         NO_CHANNEL: 'The ticket forum channel is not set up correctly. Please contact the server moderators.',
@@ -80,8 +81,8 @@ export class TicketMessages {
                 .setAccentColor(0x00ffff)
                 .addTextDisplayComponents(t => t.setContent('This ticket has been marked as closed by a moderator. The user can no longer reply in this ticket. This ticket can still be re-opened or archived.'))
                 .addActionRowComponents(r => r.setComponents(
-                    new ButtonBuilder().setCustomId(`ticket-reopen_${ticket.ticketId}`).setLabel('Re-open').setStyle(ButtonStyle.Primary),
-                    new ButtonBuilder().setCustomId(`ticket-archive_${ticket.ticketId}`).setLabel('Archive').setStyle(ButtonStyle.Danger),
+                    new ButtonBuilder().setCustomId(`ticket-reopen_${ticket.guildId}_${ticket.ticketId}`).setLabel('Re-open').setStyle(ButtonStyle.Primary),
+                    new ButtonBuilder().setCustomId(`ticket-archive_${ticket.guildId}_${ticket.ticketId}`).setLabel('Archive').setStyle(ButtonStyle.Danger),
                 ))
         );
     }
@@ -102,8 +103,8 @@ export class TicketMessages {
                 .setAccentColor(0x00ffff)
                 .addTextDisplayComponents(t => t.setContent("This ticket has been marked as closed by the user. This ticket can only be re-opened on user's request or force re-opened by Server moderators. Server moderators can also archive this ticket."))
                 .addActionRowComponents(r => r.setComponents(
-                    new ButtonBuilder().setCustomId(`ticket-force-reopen_${ticket.ticketId}`).setLabel('Force re-open').setStyle(ButtonStyle.Danger),
-                    new ButtonBuilder().setCustomId(`ticket-archive_${ticket.ticketId}`).setLabel('Archive').setStyle(ButtonStyle.Danger),
+                    new ButtonBuilder().setCustomId(`ticket-force-reopen_${ticket.guildId}_${ticket.ticketId}`).setLabel('Force re-open').setStyle(ButtonStyle.Danger),
+                    new ButtonBuilder().setCustomId(`ticket-archive_${ticket.guildId}_${ticket.ticketId}`).setLabel('Archive').setStyle(ButtonStyle.Danger),
                 ))
         );
     }
@@ -114,8 +115,8 @@ export class TicketMessages {
                 .setAccentColor(0x00ffff)
                 .addTextDisplayComponents(t => t.setContent('You have successfully closed the ticket. You can no longer reply in this ticket. If you want to discuss this case further, please re-open this ticket or open a new one after the old one is archived and reference the previous ticket ID.'))
                 .addActionRowComponents(r => r.setComponents(
-                    new ButtonBuilder().setCustomId(`ticket-reopen_${ticket.ticketId}`).setLabel('Re-open').setStyle(ButtonStyle.Primary),
-                    new ButtonBuilder().setCustomId(`ticket-archive_${ticket.ticketId}`).setLabel('Archive').setStyle(ButtonStyle.Secondary),
+                    new ButtonBuilder().setCustomId(`ticket-reopen_${ticket.guildId}_${ticket.ticketId}`).setLabel('Re-open').setStyle(ButtonStyle.Primary),
+                    new ButtonBuilder().setCustomId(`ticket-archive_${ticket.guildId}_${ticket.ticketId}`).setLabel('Archive').setStyle(ButtonStyle.Secondary),
                 ))
         );
     }
@@ -149,19 +150,54 @@ export class TicketMessages {
             new ContainerBuilder()
                 .addTextDisplayComponents(t => t.setContent('Your ticket is currently closed. If you wish, you can re-open or archive it with buttons below. You cannot open new tickets unless you archive the old one.'))
                 .addActionRowComponents(r => r.addComponents(
-                    new ButtonBuilder().setLabel('Re-open').setCustomId(`ticket-reopen_${ticket.ticketId}`).setStyle(ButtonStyle.Primary),
-                    new ButtonBuilder().setLabel('Archive').setCustomId(`ticket-archive_${ticket.ticketId}`).setStyle(ButtonStyle.Secondary),
+                    new ButtonBuilder().setLabel('Re-open').setCustomId(`ticket-reopen_${ticket.guildId}_${ticket.ticketId}`).setStyle(ButtonStyle.Primary),
+                    new ButtonBuilder().setLabel('Archive').setCustomId(`ticket-archive_${ticket.guildId}_${ticket.ticketId}`).setStyle(ButtonStyle.Secondary),
                 ))
         );
     }
 
-    static openTicket(user: User) {
+    static openTicket(user: User, guilds: Guild[]) {
+        if (guilds.length === 0)
+            return this.container(
+                new ContainerBuilder()
+                    .addTextDisplayComponents(t => t.setContent("You're not in any servers that have tickets enabled!")),
+            );
+
+        if (guilds.length === 1)
+            return this.container(
+                new ContainerBuilder()
+                    .addTextDisplayComponents(t => t.setContent('Hi! If you wish to open a new mod-mail ticket, press the button below.'))
+                    .addActionRowComponents(r => r.addComponents(
+                        new ButtonBuilder().setLabel('Open a ticket').setEmoji('✉').setCustomId(`ticket-open_${user.id}_${guilds[0].id}`).setStyle(ButtonStyle.Success),
+                    ))
+            );
+
         return this.container(
             new ContainerBuilder()
-                .addTextDisplayComponents(t => t.setContent('Hi! If you wish to open a new mod-mail ticket, press the button below.'))
+                .addTextDisplayComponents(t => t.setContent('Hi! If you wish to open a new mod-mail ticket, pick a server using the dropdown below.'))
                 .addActionRowComponents(r => r.addComponents(
-                    new ButtonBuilder().setLabel('Open a ticket').setEmoji('✉').setCustomId(`ticket-open_${user.id}`).setStyle(ButtonStyle.Success),
+                    new StringSelectMenuBuilder()
+                        .setPlaceholder('Pick a server')
+                        .setCustomId(`ticket-open_${user.id}`)
+                        .addOptions(guilds.map(g => ({ label: g.name, value: g.id }))),
                 ))
+        );
+    }
+
+    static ticketCreated(ticket: Ticket, guild: Guild, userId: string) {
+        return this.container(
+            new ContainerBuilder()
+                .addTextDisplayComponents(t => t.setContent(`Ticket #${ticket.ticketId} in **${guild.name}** created successfully! You can start chatting here, and a staff member will be with you shortly.`))
+                .addActionRowComponents(r => r.setComponents(
+                    new ButtonBuilder().setLabel('Close ticket').setStyle(ButtonStyle.Danger).setCustomId(`ticket-close_${userId}`)
+                ))
+        );
+    }
+
+    static ticketCreationFailed(reason: string) {
+        return this.container(
+            new ContainerBuilder()
+                .addTextDisplayComponents(t => t.setContent(`Ticket creation failed. ${reason}`))
         );
     }
 

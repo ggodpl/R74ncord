@@ -43,7 +43,7 @@ export default class Warn extends Command {
             .addSeparatorComponents(s => s)
             .addTextDisplayComponents(t => t.setContent('If you believe this is a mistake, you can press the button below to start a new ticket.'))
             .addActionRowComponents(r => r.setComponents(
-                new ButtonBuilder().setStyle(ButtonStyle.Danger).setLabel('Appeal').setCustomId(`ticket-open_${user.id}_${savedCase!.caseId}`)
+                new ButtonBuilder().setStyle(ButtonStyle.Danger).setLabel('Appeal').setCustomId(`ticket-open_${user.id}_${command.guildId}_${savedCase!.caseId}`)
             ));
         
         try {

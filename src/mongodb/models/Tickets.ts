@@ -45,5 +45,6 @@ schema.pre('validate', async function () {
 });
 
 schema.index({ guildId: 1, userId: 1, status: 1 }, { unique: true, partialFilterExpression: { status: { $ne: 'archived' } } });
+schema.index({ userId: 1 }, { unique: true, partialFilterExpression: { status: { $in: ['open', 'closed'] } } });
 
 export default model('Ticket', schema);
