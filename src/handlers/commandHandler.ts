@@ -1,11 +1,13 @@
 import { ChatInputCommandInteraction, Colors, EmbedBuilder, MessageFlags, ModalSubmitInteraction, REST, Routes } from "discord.js";
 import { Bot } from "../bot";
-import { Command, CommandCategory, SlashCommandJSON } from "../commands/command";
+import { Command, CommandCategory, CommandPermissionLevel, SlashCommandJSON } from "../commands/command";
 import { Logger } from "../logger";
 import { Registry } from "../registry";
 import { Handler } from "./handler";
 import { basename } from "path";
 import { getFooter } from "../utils/embed";
+
+const DEV_USER = process.env['DEV_USER'] ?? '';
 
 export class CommandHandler extends Handler<Command> {
     slashCommands: Registry<SlashCommandJSON>;
@@ -68,6 +70,19 @@ export class CommandHandler extends Handler<Command> {
                 const error = new EmbedBuilder()
                     .setTitle('Uh oh!')
                     .setDescription('This command cannot be used in DMs!')
+                    .setColor(Colors.Red)
+                    .setFooter(getFooter(interaction.user.displayAvatarURL()));
+                
+                await interaction.reply({
+                    embeds: [error]
+                });
+                return;
+            }
+
+            if (command.data.permissionLevel === CommandPermissionLevel.DEV && interaction.user.id !== DEV_USER) {
+                const error = new EmbedBuilder()
+                    .setTitle('Uh oh!')
+                    .setDescription('This command is restricted!')
                     .setColor(Colors.Red)
                     .setFooter(getFooter(interaction.user.displayAvatarURL()));
                 
