@@ -52,6 +52,16 @@ export default class Timeout extends Command {
             user: user.id
         });
 
+        if (!member) return void command.editReply({
+            embeds: [
+                new EmbedBuilder()
+                    .setTitle('Infraction')
+                    .setDescription(`This user is not a member of this server!`)
+                    .setColor(Colors.Red)
+                    .setFooter(getFooter(command.user.displayAvatarURL()))
+            ]
+        });
+
         await member.timeout(durationMs, reason ?? 'No reason provided');
 
         const savedCase = await bot.moderation.registerInfraction(command.guildId!, user.id, infraction);

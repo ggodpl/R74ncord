@@ -34,8 +34,18 @@ export default class Kick extends Command {
             moderator: command.user.id,
         };
 
-        const member = await command.guild!!.members.fetch({
+        const member = await command.guild!.members.fetch({
             user: user.id
+        });
+
+        if (!member) return void command.editReply({
+            embeds: [
+                new EmbedBuilder()
+                    .setTitle('Infraction')
+                    .setDescription(`This user is not a member of this server!`)
+                    .setColor(Colors.Red)
+                    .setFooter(getFooter(command.user.displayAvatarURL()))
+            ]
         });
 
         const dm = new EmbedBuilder()

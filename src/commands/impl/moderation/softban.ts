@@ -65,11 +65,13 @@ export default class SoftBan extends Command {
             .setDescription(`You have been soft-banned for \`${reason ?? 'No reason provided'}\` from **${command.guild!.name}**. You *can* rejoin the server`)
             .setColor(Colors.DarkOrange);
         
-        try {
-            await user.send({
-                embeds: [dm],
-            });
-        } catch {};
+        if (await command.guild!.members.fetch(user.id)) {
+            try {
+                await user.send({
+                    embeds: [dm],
+                });
+            } catch {};
+        }
 
         await command.guild!.members.ban(user.id, banOptions);
 

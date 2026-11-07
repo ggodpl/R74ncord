@@ -100,12 +100,14 @@ export default class Ban extends Command {
                 new ButtonBuilder().setLabel('Appeal').setCustomId(`appeal-${savedCase!.caseId}`).setStyle(ButtonStyle.Danger),
             );
         
-        try {
-            await user.send({
-                embeds: [dm],
-                components: [dmRow.toJSON()],
-            });
-        } catch {};
+        if (await command.guild!.members.fetch(user.id)) {
+            try {
+                await user.send({
+                    embeds: [dm],
+                    components: [dmRow.toJSON()],
+                });
+            } catch {};
+        }
 
         await command.guild!.members.ban(user.id, banOptions);
 

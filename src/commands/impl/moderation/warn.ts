@@ -3,7 +3,6 @@ import { Command, CommandPermissionLevel } from '../../command';
 import { Bot } from '../../../bot';
 import { Infraction } from '../../../modules/moderation';
 import { getFooter } from '../../../utils/embed';
-import { getRelativeTimestamp } from '../../../utils/date';
 
 export default class Warn extends Command {
     constructor () {
@@ -34,6 +33,16 @@ export default class Warn extends Command {
             reason,
             moderator: command.user.id,
         };
+
+        if (!(await command.guild!.members.fetch(user.id))) return void command.editReply({
+            embeds: [
+                new EmbedBuilder()
+                    .setTitle('Infraction')
+                    .setDescription(`This user is not a member of this server!`)
+                    .setColor(Colors.Red)
+                    .setFooter(getFooter(command.user.displayAvatarURL()))
+            ]
+        });
 
         const savedCase = await bot.moderation.registerInfraction(command.guildId!, user.id, infraction);
 

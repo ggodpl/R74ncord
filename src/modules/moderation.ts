@@ -3,6 +3,7 @@ import { Base } from '../base';
 import Infractions from '../mongodb/models/Infractions';
 import { getFooter } from '../utils/embed';
 import ms from 'ms';
+import Notes from '../mongodb/models/Notes';
 
 export interface Infraction {
     type: 'warn' | 'timeout' | 'kick' | 'softban' | 'ban' | 'untimeout' | 'unban';
@@ -22,6 +23,13 @@ export class ModerationModule extends Base {
         }).lean();
     }
 
+    async getNotes(guildId: string, userId: string) {
+        return await Notes.find({
+            guildId,
+            userId,
+        }).lean();
+    }
+
     async getCase(guildId: string, caseId: number) {
         return await Infractions.findOne({
             guildId,
@@ -29,10 +37,26 @@ export class ModerationModule extends Base {
         });
     }
 
+    async getNote(guildId: string, noteId: number) {
+        return await Notes.findOne({
+            guildId,
+            noteId,
+        });
+    }
+
     async removeCase(guildId: string, caseId: number) {
         return await Infractions.findOneAndDelete({
             guildId,
             caseId
+        });
+    }
+
+    async strikeNote(guildId: string, noteId: number) {
+        await Notes.updateOne({
+            guildId,
+            noteId,
+        }, {
+            stricken: true,
         });
     }
 
@@ -79,9 +103,11 @@ export class ModerationModule extends Base {
             const channel = guild.channels.cache.get(settings.modlog);
             if (!channel) return;
     
-            (channel as TextChannel).send({
-                embeds: [embed]
-            });
+            try {
+                (channel as TextChannel).send({
+                    embeds: [embed]
+                });
+            } catch {};
         }
 
         this.debouncedPunishments.set(`${guildId}_${userId}_${infraction.type}`, Date.now());
@@ -89,6 +115,47 @@ export class ModerationModule extends Base {
         this.cleanup();
 
         return savedCase;
+    }
+
+    async note(guildId: string, userId: string, note: string) {
+        const savedNote = await Notes.create({
+            guildId,
+            userId,
+            note,
+        });
+        
+        const settings = await this.bot.settings.getGuildSettings(guildId);
+        
+        if (settings?.modlog) {
+            const embed = new EmbedBuilder()
+                .setTitle('New note')
+                .addFields({
+                    name: 'Note ID',
+                    value: `${savedNote.noteId}`,
+                }, {
+                    name: 'Target',
+                    value: `<@${userId}>`,
+                }, {
+                    name: 'Note',
+                    value: `${note}`,
+                })
+                .setColor(Colors.Blue)
+                .setFooter(getFooter());
+            
+            const guild = this.bot.client.guilds.cache.get(guildId);
+            if (!guild) return;
+
+            const channel = guild.channels.cache.get(settings.modlog);
+            if (!channel) return;
+    
+            try {
+                (channel as TextChannel).send({
+                    embeds: [embed]
+                });
+            } catch {};
+        }
+
+        return savedNote;
     }
 
     cleanup() {

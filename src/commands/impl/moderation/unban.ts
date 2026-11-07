@@ -35,21 +35,9 @@ export default class Unban extends Command {
             moderator: command.user.id,
         };
 
-
         await command.guild!.bans.remove(user.id, reason ?? 'No reason provided');
 
         const savedCase = await bot.moderation.registerInfraction(command.guildId!, user.id, infraction);
-
-        const dm = new EmbedBuilder()
-            .setTitle('Ban removed')
-            .setDescription(`You have been unbanned in **${command.guild!.name}**`)
-            .setColor(Colors.Green);
-        
-        try {
-            await user.send({
-                embeds: [dm],
-            });
-        } catch {};
 
         const embed = new EmbedBuilder()
             .setTitle('Infraction')
